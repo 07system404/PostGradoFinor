@@ -268,7 +268,7 @@
                             @endif
                             <span>{{ $docCompletado ? '3/3 COMPLETADO' : $totalDocs . '/3 PENDIENTE' }}</span>
                         </div>
-                        <button class="btn-subir-doc" data-alumno="{{ $estudiante->nombre_completo }}" data-href="#">
+                        <button class="btn-subir-doc" data-alumno="{{ $estudiante->nombre_completo }}" data-href="{{ route('estudiantes.show', $estudiante->id) }}">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                                 <polyline points="17 8 12 3 7 8"/>
