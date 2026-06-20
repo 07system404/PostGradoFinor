@@ -212,6 +212,11 @@ document.addEventListener('DOMContentLoaded', function() {
         btnCerrarModalDoc.addEventListener('click', cerrarModalDoc);
     }
 
+    const btnCancelarModalDoc = document.getElementById('cancelar-modal-doc');
+    if (btnCancelarModalDoc) {
+        btnCancelarModalDoc.addEventListener('click', cerrarModalDoc);
+    }
+
     // Cerrar modal al hacer click fuera
     if (modalDoc) {
         modalDoc.addEventListener('click', function(e) {
