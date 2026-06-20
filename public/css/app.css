@@ -1,0 +1,38 @@
+/* =========================================
+   APP.CSS — PostGrado Pro (fallback global)
+   ========================================= */
+
+/* Re-exportamos los estilos base que necesita el layout */
+@import url('sidebar.css');
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.dashboard-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: #9ca3af;
+    text-align: center;
+}
+
+.dashboard-empty svg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+}

@@ -1,0 +1,90 @@
+<?php
+
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Web\CajaController;
+use App\Http\Controllers\Web\CursoController;
+use App\Http\Controllers\Web\DocumentoController;
+use App\Http\Controllers\Web\EstudianteController;
+use App\Http\Controllers\Web\InscripcionController;
+use App\Http\Controllers\Web\PagoController;
+use App\Http\Controllers\Web\BackupController;
+use App\Http\Controllers\Web\PersonalController;
+use Illuminate\Support\Facades\Route;
+
+// ────────────────────────────────────────────────
+// 1. AUTENTICACIÓN (público)
+// ────────────────────────────────────────────────
+Route::get('login', [LoginController::class, 'showForm'])->name('login');
+Route::post('login', [LoginController::class, 'login']);
+Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+
+// ────────────────────────────────────────────────
+// 2. REDIRECCIÓN RAIZ
+// ────────────────────────────────────────────────
+Route::get('/', function () {
+    return redirect()->route('dashboard');
+});
+
+// ────────────────────────────────────────────────
+// 3. RUTAS PROTEGIDAS (autenticación requerida)
+// ────────────────────────────────────────────────
+Route::middleware(['auth'])->group(function () {
+
+    // ─── Dashboard ──────────────────────────────
+    Route::get('/dashboard', function () {
+        return view('dashboard.index');
+    })->name('dashboard');
+
+    // ─── Gestión de Estudiantes ─────────────────
+    Route::prefix('estudiantes')->name('estudiantes.')->group(function () {
+    Route::get('/', [EstudianteController::class, 'index'])->name('index');
+    Route::get('/create', [EstudianteController::class, 'create'])->name('create');
+    Route::post('/store', [EstudianteController::class, 'store'])->name('store');
+    Route::get('/{estudiante}', [EstudianteController::class, 'show'])->name('show');
+    Route::put('/{estudiante}', [EstudianteController::class, 'update'])->name('update');
+    Route::post('/{estudiante}/inscribir', [EstudianteController::class, 'inscribirCurso'])->name('inscribir');
+});
+    // ─── Inscripciones (desde detalle) ─────────
+    Route::get('estudiantes/{estudiante}/inscripciones/create', [InscripcionController::class, 'create'])
+        ->name('inscripciones.create');
+    Route::post('estudiantes/{estudiante}/inscripciones', [InscripcionController::class, 'store'])
+        ->name('inscripciones.store');
+
+    // ─── Documentos (subida) ────────────────────
+    Route::post('estudiantes/{estudiante}/documentos', [DocumentoController::class, 'store'])
+        ->name('documentos.store');
+
+    // ─── Programas Académicos ─────────────────
+    Route::resource('programas', CursoController::class);
+    Route::get('programas/buscar/ajax', [CursoController::class, 'buscarAjax'])->name('programas.buscar.ajax');
+    Route::put('programas/{programa}/inactivar', [CursoController::class, 'toggleActivo'])->name('programas.inactivar');
+
+    // ─── Reportes (Solo Admin) ─────────────────
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/reportes', function () {
+            return view('reportes.index');
+        })->name('reportes');
+        Route::get('/reportes/estudiantes', [EstudianteController::class, 'exportar'])->name('reportes.estudiantes');
+        Route::get('/reportes/programas', [CursoController::class, 'exportar'])->name('reportes.programas');
+    });
+
+    // ─── Personal (Solo Admin) ──────────────────
+    Route::middleware('role:admin')->resource('personal', PersonalController::class);
+
+    // ─── Respaldo / Backup (Solo Admin) ──────────
+    Route::middleware('role:admin')->prefix('backup')->name('backup.')->group(function () {
+        Route::get('/', [BackupController::class, 'index'])->name('index');
+        Route::get('/generate', [BackupController::class, 'generate'])->name('generate');
+        Route::get('/download/{nombre}', [BackupController::class, 'download'])->name('download');
+        Route::post('/restore', [BackupController::class, 'restore'])->name('restore');
+        Route::post('/restore-saved', [BackupController::class, 'restoreSaved'])->name('restoreSaved');
+    });
+
+    // ─── Caja y Finanzas ─────────────────────────
+    Route::resource('caja', CajaController::class)->only(['index', 'show']);
+    Route::get('caja/{estudiante}/pago/{detalle}', [PagoController::class, 'create'])->name('caja.pago.create');
+    Route::post('caja/pago', [PagoController::class, 'store'])->name('caja.pago.store');
+    Route::post('caja/pago/registrar', [CajaController::class, 'registrarPago'])->name('caja.pago.registrar');
+    Route::get('caja/pago/formulario/{detalle}', [CajaController::class, 'formularioPago'])->name('caja.pago.formulario');
+
+});

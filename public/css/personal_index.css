@@ -1,0 +1,464 @@
+/* ============================================
+   PERSONAL_INDEX.CSS - Gestión de Personal
+   ============================================ */
+
+/* ---------- Layout de 2 columnas ---------- */
+.usuarios-layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .usuarios-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- Panel Izquierdo: Formulario ---------- */
+.panel-formulario {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    padding: 24px;
+}
+
+.panel-formulario-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.panel-formulario-header svg {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+}
+
+.panel-formulario-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.form-usuario-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.form-usuario-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.form-usuario-group input,
+.form-usuario-group select {
+    padding: 10px 14px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--gray-800);
+    background: var(--white);
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.form-usuario-group input:focus,
+.form-usuario-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+}
+
+/* Password con toggle */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--gray-400);
+    cursor: pointer;
+    padding: 4px;
+}
+
+.btn-toggle-password:hover {
+    color: var(--primary);
+}
+
+.password-hint {
+    font-size: 11px;
+    color: var(--gray-400);
+    font-style: italic;
+    margin-top: 4px;
+}
+
+/* Botón registrar */
+.btn-registrar-usuario {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--primary);
+    color: var(--white);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+}
+
+.btn-registrar-usuario:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-registrar-usuario svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ---------- Panel Derecho: Tabla de Personal ---------- */
+.panel-lista {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    padding: 24px;
+}
+
+.lista-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.lista-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.lista-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-filtrar-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: var(--gray-700);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-filtrar-sm:hover {
+    background: var(--gray-50);
+}
+
+.btn-exportar-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: var(--gray-700);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-exportar-sm:hover {
+    background: var(--gray-50);
+}
+
+/* Tabla de usuarios */
+.usuarios-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.usuarios-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.usuarios-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+}
+
+.usuarios-table tr:hover {
+    background: var(--gray-50);
+}
+
+/* Avatar del usuario */
+.usuario-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.usuario-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.usuario-avatar.operador {
+    background: var(--gray-400);
+}
+
+.usuario-datos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.usuario-nombre {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.usuario-email {
+    font-size: 12px;
+    color: var(--gray-500);
+}
+
+/* Badge de rol */
+.badge-rol {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-admin {
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid rgba(21, 101, 192, 0.2);
+}
+
+.badge-operador {
+    background: var(--gray-100);
+    color: var(--gray-600);
+    border: 1px solid var(--gray-300);
+}
+
+/* Última actividad */
+.ultima-actividad {
+    font-size: 13px;
+    color: var(--gray-600);
+}
+
+/* Acciones */
+.acciones-usuario {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-accion-user {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--gray-400);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-accion-user:hover {
+    background: var(--gray-100);
+    color: var(--primary);
+}
+
+.btn-accion-user.danger:hover {
+    color: var(--danger);
+    background: var(--danger-light);
+}
+
+/* Modal editar usuario */
+.modal-usuario-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-usuario-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-usuario-container {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 480px;
+    padding: 24px;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.modal-usuario-overlay.active .modal-usuario-container {
+    transform: scale(1);
+}
+
+.modal-usuario-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.modal-usuario-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.modal-close-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--gray-400);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close-btn:hover {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+.modal-usuario-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray-200);
+}
+
+/* Botones del modal */
+.btn-cancelar {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 24px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-cancelar:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.btn-completar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--white);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-completar:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-completar svg {
+    width: 18px;
+    height: 18px;
+}
