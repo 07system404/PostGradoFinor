@@ -77,7 +77,7 @@ class EstudianteController extends Controller
             'celular' => 'nullable|string|max:20',
             'registro' => 'required|string|max:20|unique:estudiantes,registro',
             'observaciones' => 'nullable|string|max:255',
-            'inscribir_ahora' => 'nullable|accepted',
+            'inscribir_ahora' => 'sometimes|accepted',
         ];
 
         // Si el usuario marcó "inscribir ahora", validar campos de inscripción
@@ -91,7 +91,15 @@ class EstudianteController extends Controller
             ]);
         }
 
-        $validated = $request->validate($rules);
+        $messages = [
+            'inscribir_ahora.accepted' => 'Debe aceptar la opción de inscribir ahora si desea registrar al estudiante en un curso.',
+            'curso_id.required' => 'Debe seleccionar un curso si desea inscribir al estudiante ahora.',
+            'tipo_inscripcion.required' => 'Debe seleccionar un tipo de inscripción.',
+            'fecha_inscripcion.required' => 'Debe indicar la fecha de inscripción.',
+            'modalidad_pago.required' => 'Debe elegir una modalidad de pago.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
 
         DB::transaction(function () use ($validated) {
             // 1. Crear estudiante (siempre)
