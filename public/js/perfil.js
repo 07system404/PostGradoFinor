@@ -175,8 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ---------- Cargar documento ----------
-    const btnCargarDoc = document.getElementById('btn-cargar-documento');
     // ---------- Modal de Cargar Documento ----------
     const btnCargarDoc = document.getElementById('btn-cargar-documento');
     const modalDoc = document.getElementById('modal-cargar-documento');
@@ -184,6 +182,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const docDropzone = document.getElementById('doc-dropzone');
     const docArchivoInput = document.getElementById('doc-archivo');
     const formCargarDoc = document.getElementById('form-cargar-documento');
+
+    console.log('Modal Documento - btnCargarDoc:', btnCargarDoc);
+    console.log('Modal Documento - modalDoc:', modalDoc);
+    console.log('Modal Documento - btnCerrarModalDoc:', btnCerrarModalDoc);
+    console.log('Modal Documento - docDropzone:', docDropzone);
+    console.log('Modal Documento - formCargarDoc:', formCargarDoc);
 
     function abrirModalDoc() {
         if (modalDoc) {
@@ -199,13 +203,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset form
             if (formCargarDoc) {
                 formCargarDoc.reset();
+            }
+            if (docDropzone) {
                 docDropzone.classList.remove('active');
             }
         }
     }
 
     if (btnCargarDoc) {
-        btnCargarDoc.addEventListener('click', abrirModalDoc);
+        console.log('Agregando event listener al btn-cargar-documento');
+        btnCargarDoc.addEventListener('click', function(e) {
+            console.log('Click en btn-cargar-documento');
+            e.preventDefault();
+            abrirModalDoc();
+        });
+    } else {
+        console.log('btnCargarDoc no encontrado en el DOM');
     }
 
     if (btnCerrarModalDoc) {
