@@ -46,6 +46,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ---------- Botón superior: enviar formulario aunque esté fuera del <form> ----------
+    const form = document.getElementById('form-inscripcion');
+    const submitBtn = document.getElementById('btn-submit');
+    if (submitBtn && form) {
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            form.submit();
+        });
+    }
+
     // ---------- Auto-hide alerts ----------
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {

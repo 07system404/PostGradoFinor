@@ -77,7 +77,7 @@ class EstudianteController extends Controller
             'celular' => 'nullable|string|max:20',
             'registro' => 'required|string|max:20|unique:estudiantes,registro',
             'observaciones' => 'nullable|string|max:255',
-            'inscribir_ahora' => 'nullable|in:1',
+            'inscribir_ahora' => 'nullable|accepted',
         ];
 
         // Si el usuario marcó "inscribir ahora", validar campos de inscripción
@@ -120,39 +120,17 @@ class EstudianteController extends Controller
                     'observacion' => null,
                 ]);
 
-                // 3. Crear plan de pagos
+                // 3. Crear plan de pagos y detalles por módulos/defensa
                 $curso = Curso::find($validated['curso_id']);
-                $total = $curso->costo_total_estudio;
                 $descuento = $estudiante->descuento_porcentaje / 100;
-                $totalConDescuento = $total - ($total * $descuento);
 
-                $plan = \App\Models\PlanPago::create([
-                    'inscripcion_id' => $inscripcion->id,
-                    'monto_total_programado' => $totalConDescuento,
-                    'monto_total_pagado' => 0,
-                    'saldo_pendiente' => $totalConDescuento,
-                    'total_cuotas' => $validated['modalidad_pago'] === 'Contado' ? 1 : 6,
-                    'estado' => 'Pendiente',
-                ]);
-
-                // Crear cuotas
-                $cuotas = $validated['modalidad_pago'] === 'Contado' ? 1 : 6;
-                $montoCuota = $totalConDescuento / $cuotas;
-                for ($i = 1; $i <= $cuotas; $i++) {
-                    \App\Models\DetallePlanPago::create([
-                        'plan_pago_id' => $plan->id,
-                        'nro_cuota' => $i,
-                        'nro_modulo' => null,
-                        'concepto' => 'Cuota '.$i,
-                        'fase' => null,
-                        'monto_programado' => $montoCuota,
-                        'monto_pagado' => 0,
-                        'monto_descuento' => 0,
-                        'saldo_cuota' => $montoCuota,
-                        'fecha_vencimiento' => now()->addMonths($i),
-                        'estado' => 'Pendiente',
-                    ]);
-                }
+                $this->crearPlanDePagos(
+                    $inscripcion,
+                    $curso,
+                    $descuento,
+                    $validated['modalidad_pago'],
+                    $validated['tipo_inscripcion']
+                );
             }
         });
 
@@ -162,6 +140,85 @@ class EstudianteController extends Controller
 
         return redirect()->route('estudiantes.index')
             ->with('success', $msg);
+    }
+
+    private function crearPlanDePagos(
+        Inscripcion $inscripcion,
+        Curso $curso,
+        float $descuento,
+        string $modalidadPago,
+        string $tipoInscripcion
+    ): void {
+        $nroModulos = $curso->getNroModulosForTipo($tipoInscripcion);
+        $costoDefensa = $curso->getCostoDefensaForTipo($tipoInscripcion);
+        $totalEstudio = $curso->costo_total_estudio;
+        $totalConDescuento = $totalEstudio - ($totalEstudio * $descuento);
+        $totalProgramado = $totalConDescuento + $costoDefensa;
+
+        $detallePlan = [];
+        if ($nroModulos > 0) {
+            $montoModulo = $nroModulos > 0 ? round($totalConDescuento / $nroModulos, 2) : 0;
+            $montoAcumulado = 0;
+            for ($i = 1; $i <= $nroModulos; $i++) {
+                $monto = $i === $nroModulos ? $totalConDescuento - $montoAcumulado : $montoModulo;
+                $montoAcumulado += $monto;
+                $detallePlan[] = [
+                    'nro_cuota' => $i,
+                    'nro_modulo' => $i,
+                    'concepto' => 'Módulo '.$i,
+                    'fase' => 'Módulo',
+                    'monto_programado' => $monto,
+                    'monto_pagado' => 0,
+                    'monto_descuento' => 0,
+                    'saldo_cuota' => $monto,
+                    'fecha_vencimiento' => now()->addMonths($i),
+                    'estado' => 'Pendiente',
+                ];
+            }
+        }
+
+        if ($costoDefensa > 0) {
+            $detallePlan[] = [
+                'nro_cuota' => count($detallePlan) + 1,
+                'nro_modulo' => null,
+                'concepto' => 'Defensa',
+                'fase' => 'Defensa',
+                'monto_programado' => $costoDefensa,
+                'monto_pagado' => 0,
+                'monto_descuento' => 0,
+                'saldo_cuota' => $costoDefensa,
+                'fecha_vencimiento' => now()->addMonths(count($detallePlan) + 1),
+                'estado' => 'Pendiente',
+            ];
+        }
+
+        if (empty($detallePlan)) {
+            $detallePlan[] = [
+                'nro_cuota' => 1,
+                'nro_modulo' => null,
+                'concepto' => 'Programa completo',
+                'fase' => $tipoInscripcion,
+                'monto_programado' => $totalProgramado,
+                'monto_pagado' => 0,
+                'monto_descuento' => 0,
+                'saldo_cuota' => $totalProgramado,
+                'fecha_vencimiento' => now()->addMonth(),
+                'estado' => 'Pendiente',
+            ];
+        }
+
+        $plan = \App\Models\PlanPago::create([
+            'inscripcion_id' => $inscripcion->id,
+            'monto_total_programado' => $totalProgramado,
+            'monto_total_pagado' => 0,
+            'saldo_pendiente' => $totalProgramado,
+            'total_cuotas' => count($detallePlan),
+            'estado' => 'Pendiente',
+        ]);
+
+        foreach ($detallePlan as $detalle) {
+            \App\Models\DetallePlanPago::create(array_merge($detalle, ['plan_pago_id' => $plan->id]));
+        }
     }
 
     /**

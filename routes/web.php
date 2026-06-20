@@ -84,7 +84,6 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('caja', CajaController::class)->only(['index', 'show']);
     Route::get('caja/{estudiante}/pago/{detalle}', [PagoController::class, 'create'])->name('caja.pago.create');
     Route::post('caja/pago', [PagoController::class, 'store'])->name('caja.pago.store');
-    Route::post('caja/pago/registrar', [CajaController::class, 'registrarPago'])->name('caja.pago.registrar');
     Route::get('caja/pago/formulario/{detalle}', [CajaController::class, 'formularioPago'])->name('caja.pago.formulario');
 
 });

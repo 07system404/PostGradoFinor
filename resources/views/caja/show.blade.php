@@ -25,6 +25,8 @@
             $totalProgramado = $plan->monto_total_programado;
             $totalPagado = $plan->monto_total_pagado;
             $saldoPendiente = $plan->saldo_pendiente;
+            $costoDefensa = $inscripcion->curso->getCostoDefensaForTipo($inscripcion->tipo_inscripcion);
+            $nroModulos = $inscripcion->curso->getNroModulosForTipo($inscripcion->tipo_inscripcion);
             // Calcular vencido (suma de cuotas vencidas no pagadas)
             $vencido = $plan->detalles->filter(function ($det) {
                 return $det->fecha_vencimiento && $det->fecha_vencimiento < now() && $det->estado != 'Pagado';
@@ -32,21 +34,26 @@
         @endphp
         <div class="resumen-cuenta">
             <h3>{{ $inscripcion->curso->nombre }}</h3>
+            <div class="curso-summary">
+                <span><strong>Programa:</strong> {{ $inscripcion->tipo_inscripcion }}</span>
+                <span><strong>Módulos:</strong> {{ $nroModulos }}</span>
+                <span><strong>Defensa:</strong> Bs {{ number_format($costoDefensa, 2) }}</span>
+            </div>
             <div class="resumen-cards">
                 <div class="resumen-card">
                     <span class="label">MONTO TOTAL PROGRAMA</span>
-                    <span class="value">${{ number_format($totalProgramado, 2) }}</span>
+                    <span class="value">Bs {{ number_format($totalProgramado, 2) }}</span>
                     <span class="sub">Incluye matrícula y tasas</span>
                 </div>
                 <div class="resumen-card">
                     <span class="label">TOTAL PAGADO</span>
-                    <span class="value">${{ number_format($totalPagado, 2) }}</span>
+                    <span class="value">Bs {{ number_format($totalPagado, 2) }}</span>
                 </div>
                 <div class="resumen-card">
                     <span class="label">SALDO PENDIENTE</span>
-                    <span class="value">${{ number_format($saldoPendiente, 2) }}</span>
+                    <span class="value">Bs {{ number_format($saldoPendiente, 2) }}</span>
                     @if($vencido > 0)
-                        <span class="sub vencido">Vencido: ${{ number_format($vencido, 2) }}</span>
+                        <span class="sub vencido">Vencido: Bs {{ number_format($vencido, 2) }}</span>
                     @endif
                 </div>
             </div>
@@ -78,11 +85,11 @@
                         <tr>
                             <td>{{ $detalle->concepto }}</td>
                             <td>{{ $detalle->fecha_vencimiento ? \Carbon\Carbon::parse($detalle->fecha_vencimiento)->format('d M, Y') : '-' }}</td>
-                            <td>${{ number_format($detalle->monto_programado, 2) }}</td>
+                            <td>Bs {{ number_format($detalle->monto_programado, 2) }}</td>
                             <td class="estado {{ strtolower($estado) }}">{{ $icono }}</td>
                             <td>
                                 @if($estado != 'Pagado')
-                                    <a href="{{ route('caja.pago.create', ['estudiante' => $estudiante, 'detalle' => $detalle]) }}" class="btn-pagar">Registrar Pago</a>
+                                    <a href="{{ route('caja.pago.formulario', $detalle->id) }}" class="btn-pagar">Registrar Pago</a>
                                 @else
                                     <span class="btn-recibo">Ver Recibo</span>
                                 @endif

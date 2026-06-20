@@ -45,17 +45,36 @@
 @endif
 
 <!-- Formulario de Pago -->
-<form id="form-registro-pago" action="{{ route('caja.pago.registrar') }}" method="POST" enctype="multipart/form-data">
+<form id="form-registro-pago" action="{{ route('caja.pago.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
     <input type="hidden" name="detalle_plan_pago_id" value="{{ $detalle->id }}">
     <input type="hidden" name="inscripcion_id" value="{{ $inscripcion->id }}">
 
+    <div class="pago-meta-grid">
+        <div>
+            <span>Alumno</span>
+            <strong>{{ $estudiante->nombre_completo }}</strong>
+        </div>
+        <div>
+            <span>Programa</span>
+            <strong>{{ $inscripcion->curso->nombre }} / {{ $inscripcion->tipo_inscripcion }}</strong>
+        </div>
+        <div>
+            <span>Detalle</span>
+            <strong>{{ $detalle->concepto }}</strong>
+        </div>
+        <div>
+            <span>Saldo actual</span>
+            <strong>Bs {{ number_format($detalle->saldo_cuota > 0 ? $detalle->saldo_cuota : $detalle->monto_programado, 2) }}</strong>
+        </div>
+    </div>
+
     <div class="pago-form-card">
         <div class="pago-form-row">
             <div class="pago-form-group">
-                <label for="monto">Monto a Pagar (USD)</label>
+                <label for="monto">Monto a Pagar (Bs)</label>
                 <div class="pago-input-monto">
-                    <span class="prefix">$</span>
+                    <span class="prefix">Bs</span>
                     <input type="number" id="monto" name="monto" step="0.01" min="0.01" 
                            value="{{ number_format($detalle->saldo_cuota > 0 ? $detalle->saldo_cuota : $detalle->monto_programado, 2, '.', '') }}" 
                            required>

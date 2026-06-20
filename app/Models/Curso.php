@@ -30,6 +30,26 @@ class Curso extends Model
 
     //  Relaciones
 
+    public function getNroModulosForTipo(string $tipo): int
+    {
+        return match ($tipo) {
+            'Diplomado' => $this->nro_modulos_diplomado,
+            'Especialidad' => $this->nro_modulos_especialidad ?? 0,
+            'Maestría' => $this->nro_modulos_maestria ?? 0,
+            default => 0,
+        };
+    }
+
+    public function getCostoDefensaForTipo(string $tipo): float
+    {
+        return (float) match ($tipo) {
+            'Diplomado' => $this->costo_defensa_diplomado,
+            'Especialidad' => $this->costo_defensa_especialidad,
+            'Maestría' => $this->costo_defensa_maestria,
+            default => 0.0,
+        };
+    }
+
     public function inscripciones()
     {
         return $this->hasMany(Inscripcion::class);

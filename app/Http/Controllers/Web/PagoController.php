@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\DetallePlanPago;
 use App\Models\Estudiante;
+use App\Models\Inscripcion;
 use App\Models\Pago;
-use App\Models\PlanPago;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -20,7 +20,9 @@ class PagoController extends Controller
             abort(404);
         }
 
-        return view('caja.pago', compact('estudiante', 'detalle'));
+        $referencia = 'FIN-' . date('Y') . '-' . str_pad(Pago::count() + 98442, 5, '0', STR_PAD_LEFT);
+
+        return view('caja.pago', compact('estudiante', 'detalle', 'inscripcion', 'referencia'));
     }
 
     public function store(Request $request)
@@ -31,7 +33,7 @@ class PagoController extends Controller
             'monto' => 'required|numeric|min:0.01',
             'nro_comprobante' => 'required|string|max:50',
             'observacion' => 'nullable|string',
-            'archivo_adjunto' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'comprobante' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         $estudianteId = null;
@@ -59,8 +61,8 @@ class PagoController extends Controller
             ]);
 
             // Si se subió archivo, guardar
-            if ($request->hasFile('archivo_adjunto')) {
-                $path = $request->file('archivo_adjunto')->store('pagos', 'public');
+            if ($request->hasFile('comprobante')) {
+                $path = $request->file('comprobante')->store('pagos', 'public');
                 $pago->archivo_adjunto = $path;
                 $pago->save();
             }
@@ -92,6 +94,17 @@ class PagoController extends Controller
                 }
             }
             $plan->save();
+
+            // Actualizar estado financiero de la inscripción
+            $inscripcion = Inscripcion::find($plan->inscripcion_id);
+            if ($inscripcion) {
+                if ($plan->saldo_pendiente <= 0) {
+                    $inscripcion->estado_financiero = 'Completado';
+                } elseif ($plan->monto_total_pagado > 0) {
+                    $inscripcion->estado_financiero = 'Parcial';
+                }
+                $inscripcion->save();
+            }
         });
 
         return redirect()->route('caja.show', $estudianteId)

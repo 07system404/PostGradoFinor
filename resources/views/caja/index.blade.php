@@ -67,11 +67,26 @@
                 <h2>Detalle de Cuenta: {{ $estudianteSeleccionado->nombre_completo }}</h2>
             </div>
 
+            <div class="curso-meta-grid">
+                <div class="curso-meta-card">
+                    <span>Programa</span>
+                    <strong>{{ $inscripcionSeleccionada->curso->nombre }} ({{ $inscripcionSeleccionada->tipo_inscripcion }})</strong>
+                </div>
+                <div class="curso-meta-card">
+                    <span>Módulos</span>
+                    <strong>{{ $inscripcionSeleccionada->curso->getNroModulosForTipo($inscripcionSeleccionada->tipo_inscripcion) }}</strong>
+                </div>
+                <div class="curso-meta-card">
+                    <span>Costo Defensa</span>
+                    <strong>Bs {{ number_format($inscripcionSeleccionada->curso->getCostoDefensaForTipo($inscripcionSeleccionada->tipo_inscripcion), 2) }}</strong>
+                </div>
+            </div>
+
             <!-- Cards de Resumen -->
             <div class="resumen-cards">
                 <div class="resumen-card">
                     <div class="resumen-label">Monto Total Programa</div>
-                    <div class="resumen-monto">${{ number_format($planPago->monto_total_programado, 2) }}</div>
+                    <div class="resumen-monto">Bs {{ number_format($planPago->monto_total_programado, 2) }}</div>
                     <div class="resumen-nota">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -83,7 +98,7 @@
 
                 <div class="resumen-card">
                     <div class="resumen-label">Total Pagado</div>
-                    <div class="resumen-monto">${{ number_format($planPago->monto_total_pagado, 2) }}</div>
+                    <div class="resumen-monto">Bs {{ number_format($planPago->monto_total_pagado, 2) }}</div>
                     <div class="progress-bar-container">
                         @php
                             $porcentaje = $planPago->monto_total_programado > 0 
@@ -96,7 +111,7 @@
 
                 <div class="resumen-card {{ $planPago->saldo_pendiente > 0 ? 'alert' : '' }}">
                     <div class="resumen-label">Saldo Pendiente</div>
-                    <div class="resumen-monto">${{ number_format($planPago->saldo_pendiente, 2) }}</div>
+                    <div class="resumen-monto">Bs {{ number_format($planPago->saldo_pendiente, 2) }}</div>
                     @php
                         $vencido = $detalles->filter(function($d) {
                             return ($d->estado === 'Vencido') || 
@@ -105,7 +120,7 @@
                     @endphp
                     @if($vencido > 0)
                     <div class="resumen-nota">
-                        Vencido: ${{ number_format($vencido, 2) }}
+                        Vencido: Bs {{ number_format($vencido, 2) }}
                     </div>
                     @endif
                 </div>
@@ -192,7 +207,7 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="monto-cuota">${{ number_format($detalle->monto_programado, 2) }}</span>
+                                <span class="monto-cuota">Bs {{ number_format($detalle->monto_programado, 2) }}</span>
                             </td>
                             <td>
                                 <span class="{{ $claseEstado }}">

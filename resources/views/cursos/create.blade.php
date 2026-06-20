@@ -171,7 +171,7 @@
                                 </div>
                             </div>
                             <div class="estructura-field">
-                                <label>Costo Defensa (USD)</label>
+                                <label>Costo Defensa (Bs)</label>
                                 <div class="input-moneda">
                                     <span class="prefix">Bs</span>
                                     <input type="number" id="costo_defensa_diplomado" name="costo_defensa_diplomado" step="0.01" min="0" placeholder="0.00">
@@ -195,7 +195,7 @@
                                 </div>
                             </div>
                             <div class="estructura-field">
-                                <label>Costo Defensa (USD)</label>
+                                <label>Costo Defensa (Bs)</label>
                                 <div class="input-moneda">
                                     <span class="prefix">Bs</span>
                                     <input type="number" id="costo_defensa_especialidad" name="costo_defensa_especialidad" step="0.01" min="0" placeholder="0.00">
@@ -219,7 +219,7 @@
                                 </div>
                             </div>
                             <div class="estructura-field">
-                                <label>Costo Defensa (USD)</label>
+                                <label>Costo Defensa (Bs)</label>
                                 <div class="input-moneda">
                                     <span class="prefix">Bs</span>
                                     <input type="number" id="costo_defensa_maestria" name="costo_defensa_maestria" step="0.01" min="0" placeholder="0.00">
