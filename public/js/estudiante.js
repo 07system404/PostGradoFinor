@@ -34,13 +34,10 @@ document.addEventListener('DOMContentLoaded', function() {
     btnsSubir.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            const alumno = this.dataset.alumno || 'este alumno';
-
-            // Crear modal simple
-            if (confirm('¿Desea subir documentos para ' + alumno + '?')) {
-                // Aquí iría la lógica de subida de archivos
-                window.location.href = this.dataset.href || '#';
-            }
+            const href = this.dataset.href || '#';
+            // Agregar parámetro para abrir modal de documentos
+            const urlWithModal = href + (href.includes('?') ? '&' : '?') + 'openDocModal=true';
+            window.location.href = urlWithModal;
         });
     });
 

@@ -208,6 +208,14 @@ document.addEventListener('DOMContentLoaded', function() {
         btnCargarDoc.addEventListener('click', abrirModalDoc);
     }
 
+    // Abrir modal automáticamente si viene del parámetro URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('openDocModal') && urlParams.get('openDocModal') === 'true') {
+        abrirModalDoc();
+        // Limpiar el parámetro de la URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     if (btnCerrarModalDoc) {
         btnCerrarModalDoc.addEventListener('click', cerrarModalDoc);
     }
