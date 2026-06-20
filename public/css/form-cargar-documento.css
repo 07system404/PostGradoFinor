@@ -1,0 +1,221 @@
+/* =========================================
+   FORM-CARGAR-DOCUMENTO.CSS
+   Modal "Cargar Documento"
+   PostGrado Pro
+   ========================================= */
+
+/* ---------- Overlay ---------- */
+.cd-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.cd-modal-overlay.active {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ---------- Box ---------- */
+.cd-modal-box {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.96);
+    transition: transform 0.25s ease;
+}
+
+.cd-modal-overlay.active .cd-modal-box {
+    transform: scale(1);
+}
+
+/* ---------- Header ---------- */
+.cd-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.cd-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.cd-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.cd-modal-close:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* ---------- Body ---------- */
+.cd-modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ---------- Form Groups ---------- */
+.cd-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cd-form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.cd-form-group select {
+    padding: 10px 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1f2937;
+    background: #fff;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cd-form-group select:focus {
+    outline: none;
+    border-color: #1B4FD8;
+    box-shadow: 0 0 0 3px rgba(27, 79, 216, 0.1);
+}
+
+.cd-form-group select.error-input {
+    border-color: #C62828;
+    box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.1);
+}
+
+.cd-form-group .error {
+    font-size: 12px;
+    color: #C62828;
+    margin-top: 2px;
+}
+
+.cd-required {
+    color: #C62828;
+}
+
+/* ---------- Dropzone ---------- */
+.cd-dropzone {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: #f9fafb;
+}
+
+.cd-dropzone:hover,
+.cd-dropzone.active {
+    border-color: #1B4FD8;
+    background: #eff6ff;
+}
+
+.cd-dropzone.cd-has-error {
+    border-color: #C62828;
+    background: #fef2f2;
+}
+
+.cd-dropzone-text {
+    margin: 8px 0 0;
+    font-size: 14px;
+    color: #4b5563;
+    font-weight: 500;
+}
+
+.cd-dropzone-subtext {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* ---------- Footer ---------- */
+.cd-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* ---------- Buttons ---------- */
+.cd-btn-cancelar {
+    padding: 10px 20px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.cd-btn-cancelar:hover {
+    border-color: #9ca3af;
+    background: #f9fafb;
+}
+
+.cd-btn-subir {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #1B4FD8;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.cd-btn-subir:hover {
+    background: #1239A8;
+}
+
+.cd-btn-subir:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* ---------- Utilidades ---------- */
+.cd-hidden {
+    display: none;
+}

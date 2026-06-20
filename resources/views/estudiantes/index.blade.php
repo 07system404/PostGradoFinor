@@ -1,127 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Gestión de Alumnos')
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/estudiantes.css') }}">
-<style>
-/* === BARRA DE BÚSQUEDA AZUL (ESTILO CURSOS) === */
-.programas-search-bar {
-    flex-shrink: 0;
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
-    border: 1px solid #bfdbfe !important;
-    border-radius: 16px !important;
-    padding: 16px 20px !important;
-    margin-bottom: 20px !important;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08) !important;
-}
-.search-bar-form {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    flex-wrap: wrap !important;
-}
-.search-bar-input-group {
-    position: relative !important;
-    flex: 1 !important;
-    min-width: 200px !important;
-}
-.search-bar-icon {
-    position: absolute !important;
-    left: 14px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    color: #3b82f6 !important;
-    pointer-events: none !important;
-}
-.search-bar-input-group input {
-    width: 100% !important;
-    padding: 11px 16px 11px 42px !important;
-    border: 1.5px solid #bfdbfe !important;
-    border-radius: 12px !important;
-    font-size: 14px !important;
-    color: #1e293b !important;
-    background: #ffffff !important;
-    transition: all 0.25s ease !important;
-    outline: none !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
-}
-.search-bar-input-group input:focus {
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), 0 2px 8px rgba(59, 130, 246, 0.1) !important;
-}
-.search-bar-input-group input::placeholder {
-    color: #93c5fd !important;
-}
-.search-bar-select-group {
-    position: relative !important;
-    display: flex !important;
-    align-items: center !important;
-}
-.search-bar-filter-icon {
-    position: absolute !important;
-    left: 14px !important;
-    color: #3b82f6 !important;
-    pointer-events: none !important;
-    z-index: 1 !important;
-}
-.filter-estado {
-    padding: 11px 42px 11px 38px !important;
-    border: 1.5px solid #bfdbfe !important;
-    border-radius: 12px !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    color: #1e4b8a !important;
-    background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center !important;
-    appearance: none !important;
-    cursor: pointer !important;
-    outline: none !important;
-    min-width: 220px !important;
-}
-.btn-nuevo-programa {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    padding: 12px 24px !important;
-    border: none !important;
-    border-radius: 12px !important;
-    background: #3b82f6 !important;
-    color: #ffffff !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    text-decoration: none !important;
-    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3) !important;
-    white-space: nowrap !important;
-}
-.btn-nuevo-programa:hover {
-    background: #2563eb !important;
-    transform: translateY(-1px) !important;
-}
-.btn-nuevo-programa svg {
-    width: 18px !important;
-    height: 18px !important;
-}
-@media (max-width: 1024px) {
-    .search-bar-form {
-        flex-direction: column !important;
-        align-items: stretch !important;
-    }
-    .search-bar-input-group {
-        max-width: 100% !important;
-    }
-    .filter-estado {
-        width: 100% !important;
-    }
-    .btn-nuevo-programa {
-        justify-content: center !important;
-    }
-}
-</style>
-@endpush
+@section('title', 'Gestion de Alumnos')
 
 @section('content')
+
+<link rel="stylesheet" href="{{ asset('css/estudiantes_index.css') }}">
+<link rel="stylesheet" href="{{ asset('css/form-cargar-documento.css') }}">
 
 <!-- Mensajes -->
 @if(session('success'))
@@ -171,7 +55,7 @@
 <div class="card-table">
     <div class="card-table-header">
         <div class="cohorte-info">
-            <h3>Cohorte de Alumnos Activos</h3>
+            <h3>Gestión de Alumnos</h3>
             <span class="badge-total">TOTAL: {{ $totalAlumnos }}</span>
             <span class="badge-solventes">SOLVENTES: {{ $solventes }}</span>
         </div>
@@ -221,12 +105,15 @@
                         $totalDocs = $estudiante->documentos->count();
                         $docCompletado = $totalDocs >= 3;
                     @endphp
-                <tr>
+                <tr class="{{ $estudiante->activo ? '' : 'fila-inactiva' }}">
                     <td data-label="Código Reg.">
                         <span class="codigo-reg">{{ $estudiante->registro }}</span>
                     </td>
                     <td data-label="Alumno">
                         <span class="nombre-alumno">{{ $estudiante->nombre_completo }}</span>
+                        @if(!$estudiante->activo)
+                        <span class="badge-inactivo">INACTIVO</span>
+                        @endif
                     </td>
                     <td data-label="Programa">
                         <div class="programa-principal">{{ $programaPrincipal }}</div>                            @if($estudiante->inscripciones->count() > 1)
@@ -268,7 +155,7 @@
                             @endif
                             <span>{{ $docCompletado ? '3/3 COMPLETADO' : $totalDocs . '/3 PENDIENTE' }}</span>
                         </div>
-                        <button class="btn-subir-doc" data-alumno="{{ $estudiante->nombre_completo }}" data-href="{{ route('estudiantes.show', $estudiante->id) }}">
+                        <button class="btn-subir-doc" data-alumno-nombre="{{ $estudiante->nombre_completo }}" data-alumno-id="{{ $estudiante->id }}">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                                 <polyline points="17 8 12 3 7 8"/>
@@ -285,18 +172,39 @@
                                     <circle cx="12" cy="12" r="3"/>
                                 </svg>
                             </a>
-                            <button class="btn-accion" title="Eliminar" data-confirm="¿Está seguro de eliminar este alumno?">
+                            <a href="{{ route('caja.index', ['buscar' => $estudiante->cedula]) }}" class="btn-accion btn-caja" title="Ver Caja">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                                 </svg>
-                            </button>
+                            </a>
+                            @if($estudiante->activo)
+                            <form action="{{ route('estudiantes.destroy', $estudiante->id) }}" method="POST" class="form-baja-estudiante form-baja-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" class="btn-accion btn-baja" title="Dar de baja" data-nombre="{{ $estudiante->nombre_completo }}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="8" y1="12" x2="16" y2="12"/>
+                                    </svg>
+                                </button>
+                            </form>
+                            @else
+                            <form action="{{ route('estudiantes.reactivate', $estudiante->id) }}" method="POST" class="form-baja-inline">
+                                @csrf
+                                <button type="button" class="btn-accion btn-reactivar" title="Reactivar" data-nombre="{{ $estudiante->nombre_completo }}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="23 4 23 10 17 10"/>
+                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                                    </svg>
+                                </button>
+                            </form>
+                            @endif
                         </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--gray-500);">
+                    <td colspan="6" class="empty-state">
                         No se encontraron alumnos registrados.
                     </td>
                 </tr>
@@ -316,8 +224,218 @@
     </div>
 </div>
 
-@endsection
+<!-- Modal Confirmación Baja/Reactivar -->
+<div class="modal-overlay" id="modal-confirmacion">
+    <div class="modal-container modal-container-sm">
+        <div class="modal-header" id="modal-confirm-header">
+            <h3 id="modal-confirm-titulo">Confirmar</h3>
+            <button type="button" class="modal-close" id="cerrar-modal-confirm">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="confirm-icon" id="modal-confirm-icon"></div>
+            <p class="confirm-text" id="modal-confirm-text"></p>
+            <p class="confirm-subtext" id="modal-confirm-subtext"></p>
+        </div>
+        <div class="modal-footer" id="modal-confirm-footer">
+            <button type="button" class="btn-cancelar" id="btn-cancelar-confirm">Cancelar</button>
+            <button type="button" class="btn-confirmar" id="btn-confirmar-accion">Confirmar</button>
+        </div>
+    </div>
+</div>
 
-@push('scripts')
-<script src="{{ asset('js/estudiante.js') }}"></script>
-@endpush
+<x-form-cargar-documento />
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // --- Busqueda ---
+    var searchInput = document.getElementById('buscar-alumno');
+    var searchForm = document.getElementById('form-buscar-alumnos');
+    var searchTimeout;
+    if (searchInput && searchForm) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            var val = this.value;
+            searchTimeout = setTimeout(function() {
+                if (val.length >= 2 || val.length === 0) searchForm.submit();
+            }, 500);
+        });
+    }
+
+    // --- Filtro curso ---
+    var filterSelect = document.getElementById('filtro-curso');
+    if (filterSelect && searchForm) {
+        filterSelect.addEventListener('change', function() { searchForm.submit(); });
+    }
+
+    // --- Modal Confirmacion ---
+    var modalConfirm = document.getElementById('modal-confirmacion');
+    var confirmHeader = document.getElementById('modal-confirm-header');
+    var confirmIcon = document.getElementById('modal-confirm-icon');
+    var confirmTitulo = document.getElementById('modal-confirm-titulo');
+    var confirmText = document.getElementById('modal-confirm-text');
+    var confirmSubtext = document.getElementById('modal-confirm-subtext');
+    var btnConfirmar = document.getElementById('btn-confirmar-accion');
+    var btnCancelarConfirm = document.getElementById('btn-cancelar-confirm');
+    var btnCerrarConfirm = document.getElementById('cerrar-modal-confirm');
+    var confirmForm = null;
+
+    function abrirModalConfirm(tipo) {
+        if (!modalConfirm) return;
+        modalConfirm.classList.remove('modal-confirm-danger', 'modal-confirm-success');
+        modalConfirm.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        if (tipo === 'baja') {
+            modalConfirm.classList.add('modal-confirm-danger');
+            confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
+            confirmTitulo.textContent = 'Dar de Baja';
+            btnConfirmar.textContent = 'Si, dar de baja';
+        } else {
+            modalConfirm.classList.add('modal-confirm-success');
+            confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
+            confirmTitulo.textContent = 'Reactivar Alumno';
+            btnConfirmar.textContent = 'Si, reactivar';
+        }
+    }
+
+    function cerrarModalConfirm() {
+        if (!modalConfirm) return;
+        modalConfirm.classList.remove('active');
+        document.body.style.overflow = '';
+        confirmForm = null;
+    }
+
+    if (btnCerrarConfirm) btnCerrarConfirm.addEventListener('click', cerrarModalConfirm);
+    if (btnCancelarConfirm) btnCancelarConfirm.addEventListener('click', cerrarModalConfirm);
+    if (modalConfirm) modalConfirm.addEventListener('click', function(e) { if (e.target === modalConfirm) cerrarModalConfirm(); });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modalConfirm && modalConfirm.classList.contains('active')) cerrarModalConfirm();
+    });
+    if (btnConfirmar) {
+        btnConfirmar.addEventListener('click', function() {
+            if (confirmForm) confirmForm.submit();
+            cerrarModalConfirm();
+        });
+    }
+
+    document.querySelectorAll('.btn-baja').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var nombre = this.getAttribute('data-nombre') || 'este alumno';
+            confirmForm = this.closest('form');
+            confirmText.textContent = 'Esta seguro que desea dar de baja a "' + nombre + '"?';
+            confirmSubtext.textContent = 'El alumno quedara como inactivo en la lista.';
+            abrirModalConfirm('baja');
+        });
+    });
+
+    document.querySelectorAll('.btn-reactivar').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var nombre = this.getAttribute('data-nombre') || 'este alumno';
+            confirmForm = this.closest('form');
+            confirmText.textContent = 'Desea reactivar al alumno "' + nombre + '"?';
+            confirmSubtext.textContent = 'El alumno volvera a aparecer como activo.';
+            abrirModalConfirm('reactivar');
+        });
+    });
+
+    // --- Animacion filas ---
+    document.querySelectorAll('table.data-table tbody tr').forEach(function(fila, i) {
+        fila.style.opacity = '0';
+        fila.style.transform = 'translateY(10px)';
+        setTimeout(function() {
+            fila.style.transition = 'all 0.3s ease';
+            fila.style.opacity = fila.classList.contains('fila-inactiva') ? '0.5' : '1';
+            fila.style.transform = 'translateY(0)';
+        }, i * 80);
+    });
+
+    // --- MODAL CARGAR DOCUMENTO ---
+    var modal = document.getElementById('cd-modal-documento');
+    var form = document.getElementById('cd-form-documento');
+    var dropzone = document.getElementById('cd-dropzone');
+    var fileInput = document.getElementById('cd-archivo');
+    var titulo = document.getElementById('cd-modal-titulo');
+
+    function abrirDocModal(alumnoId, alumnoNombre) {
+        if (!modal) return;
+        if (form) form.action = '/estudiantes/' + alumnoId + '/documentos';
+        if (titulo) titulo.textContent = 'Cargar Documento \u2014 ' + alumnoNombre;
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarDocModal() {
+        if (!modal) return;
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        if (form) form.reset();
+        if (dropzone) {
+            dropzone.classList.remove('active', 'cd-has-error');
+            var tp = dropzone.querySelector('p.cd-dropzone-text');
+            if (tp) tp.textContent = 'Arrastra el archivo aqui';
+        }
+    }
+
+    document.querySelectorAll('.btn-subir-doc').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var id = this.getAttribute('data-alumno-id');
+            var nombre = this.getAttribute('data-alumno-nombre');
+            if (id) abrirDocModal(id, nombre || 'Alumno');
+        });
+    });
+
+    var btnCerrar = document.getElementById('cd-cerrar-modal');
+    var btnCancelar = document.getElementById('cd-cancelar');
+    if (btnCerrar) btnCerrar.addEventListener('click', cerrarDocModal);
+    if (btnCancelar) btnCancelar.addEventListener('click', cerrarDocModal);
+    if (modal) modal.addEventListener('click', function(e) { if (e.target === modal) cerrarDocModal(); });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal && modal.classList.contains('active')) cerrarDocModal();
+    });
+
+    if (dropzone && fileInput) {
+        dropzone.addEventListener('click', function() { fileInput.click(); });
+        dropzone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('active'); });
+        dropzone.addEventListener('dragleave', function() { this.classList.remove('active'); });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault(); this.classList.remove('active');
+            fileInput.files = e.dataTransfer.files;
+            var tp = dropzone.querySelector('p.cd-dropzone-text');
+            if (tp && e.dataTransfer.files.length) tp.textContent = 'Archivo: ' + e.dataTransfer.files[0].name;
+        });
+        fileInput.addEventListener('change', function() {
+            if (this.files.length) {
+                var tp = dropzone.querySelector('p.cd-dropzone-text');
+                if (tp) tp.textContent = 'Archivo: ' + this.files[0].name;
+            }
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            var tipo = document.getElementById('cd-tipo');
+            if (!tipo || !tipo.value) { e.preventDefault(); tipo.classList.add('error-input'); return; }
+            if (!fileInput || !fileInput.files.length) { e.preventDefault(); dropzone.classList.add('cd-has-error'); return; }
+            var btn = form.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.textContent = 'Cargando...'; }
+        });
+    }
+
+    // --- Auto-hide alerts ---
+    document.querySelectorAll('.alert').forEach(function(a) {
+        setTimeout(function() { a.style.transition = 'opacity 0.5s'; a.style.opacity = '0'; setTimeout(function() { a.remove(); }, 500); }, 4000);
+    });
+});
+</script>
+
+@endsection

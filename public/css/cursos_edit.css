@@ -36,20 +36,24 @@
     width: 100%;
 }
 
-/* Diseño de tres columnas: cols 1 y 3 ligeramente más angostas */
+/* Diseño de tres columnas. minmax(0, …) evita que el contenido fuerce
+   scroll horizontal; la columna 3 (estructura) recibe algo más de ancho. */
 .form-three-columns {
     display: grid;
-    grid-template-columns: 0.7fr 1.3fr 0.35fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr) minmax(0, 1.2fr);
     gap: 16px;
     align-items: start;
+    width: 100%;
+    max-width: 100%;
 }
 
 .form-column {
     display: flex;
     flex-direction: column;
+    min-width: 0; /* permite que la columna se encoja sin desbordar el grid */
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
     .form-three-columns {
         grid-template-columns: 1fr;
     }
@@ -418,4 +422,92 @@
 
 .form-seccion-estado {
     margin-top: 20px;
+}
+
+/* ============================================
+   COSTO POR MÓDULO (campo calculado, solo lectura)
+   ============================================ */
+
+.calc-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: 6px;
+    background: #dcfce7;
+    color: #16a34a;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    vertical-align: middle;
+}
+
+/* Campo de solo lectura: fondo gris claro, no editable */
+.input-moneda-readonly input {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #334155;
+    font-weight: 700;
+    cursor: default;
+    pointer-events: none;
+}
+
+.input-moneda-readonly input:focus {
+    outline: none;
+    box-shadow: none;
+    border-color: #e2e8f0;
+}
+
+.input-moneda-readonly .prefix {
+    color: #64748b;
+}
+
+.costo-modulo-nota {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.costo-modulo-nota strong {
+    color: #1f2937;
+}
+
+/* ============================================
+   ANCHOS RESPONSIVOS (evitar scroll horizontal)
+   Los inputs sin width:100% toman su ancho intrínseco (los number con
+   spinners son anchos) y desbordan la columna 3. box-sizing ya es global.
+   ============================================ */
+.form-group-prog,
+.estructura-fields,
+.estructura-field {
+    min-width: 0;
+}
+
+.form-group-prog input,
+.form-group-prog select,
+.input-moneda,
+.input-moneda input,
+.input-icon-wrapper,
+.input-icon-wrapper input {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Contador de módulos: ocultar las flechitas nativas del input numérico
+   (si las hubiera) y permitir que el input encoja sin recortar el botón "+" */
+.modulo-counter input::-webkit-outer-spin-button,
+.modulo-counter input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.modulo-counter input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+    min-width: 0;
+}
+
+.modulo-counter button {
+    flex-shrink: 0; /* los botones − y + nunca se encogen ni se recortan */
 }

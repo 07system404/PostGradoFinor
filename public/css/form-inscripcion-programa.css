@@ -1,0 +1,296 @@
+/* =========================================
+   FORM-INSCRIPCION-PROGRAMA.CSS
+   Modal "Nueva Inscripción en Curso"
+   PostGrado Pro
+   ========================================= */
+
+/* ---------- Overlay ---------- */
+.fi-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.fi-modal-overlay.active {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ---------- Box ---------- */
+.fi-modal-box {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.96);
+    transition: transform 0.25s ease;
+}
+
+.fi-modal-overlay.active .fi-modal-box {
+    transform: scale(1);
+}
+
+/* ---------- Header ---------- */
+.fi-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.fi-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.fi-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.fi-modal-close:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* ---------- Body ---------- */
+.fi-modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ---------- Form Groups ---------- */
+.fi-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.fi-form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.fi-form-group input,
+.fi-form-group select {
+    padding: 10px 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1f2937;
+    background: #fff;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fi-form-group input:focus,
+.fi-form-group select:focus {
+    outline: none;
+    border-color: #1B4FD8;
+    box-shadow: 0 0 0 3px rgba(27, 79, 216, 0.1);
+}
+
+.fi-form-group input::placeholder {
+    color: #9ca3af;
+}
+
+.fi-form-group input.error-input,
+.fi-form-group select.error-input {
+    border-color: #C62828;
+    box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.1);
+}
+
+.fi-form-group .error {
+    font-size: 12px;
+    color: #C62828;
+    margin-top: 2px;
+}
+
+/* ---------- Footer ---------- */
+.fi-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* ---------- Buttons ---------- */
+.fi-btn-cancelar {
+    padding: 10px 20px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.fi-btn-cancelar:hover {
+    border-color: #9ca3af;
+    background: #f9fafb;
+}
+
+.fi-btn-guardar {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #1B4FD8;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.fi-btn-guardar:hover {
+    background: #1239A8;
+}
+
+.fi-btn-guardar:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* ---------- Autocompletado de alumno (modo programa fijo) ---------- */
+.fi-autocomplete {
+    position: relative;
+}
+
+.fi-autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 1100;
+    display: none;
+}
+
+.fi-autocomplete-dropdown.active {
+    display: block;
+}
+
+.fi-autocomplete-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.15s;
+}
+
+.fi-autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.fi-autocomplete-item:hover {
+    background: #eef2ff;
+}
+
+.fi-autocomplete-empty {
+    cursor: default;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.fi-autocomplete-empty:hover {
+    background: #fff;
+}
+
+.fi-item-nombre {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.fi-item-detalle {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* ---------- Alumno seleccionado ---------- */
+.fi-alumno-selected {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 8px;
+}
+
+.fi-alumno-selected-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.fi-alumno-selected-info strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e3a8a;
+}
+
+.fi-alumno-selected-info span {
+    font-size: 12px;
+    color: #4b5563;
+}
+
+.fi-btn-cambiar-alumno {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border: 1px solid #c7d2fe;
+    border-radius: 6px;
+    background: #fff;
+    color: #1B4FD8;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.fi-btn-cambiar-alumno:hover {
+    background: #f5f3ff;
+    border-color: #a5b4fc;
+}

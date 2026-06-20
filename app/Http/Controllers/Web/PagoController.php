@@ -107,7 +107,7 @@ class PagoController extends Controller
             }
         });
 
-        return redirect()->route('caja.show', $estudianteId)
+        return redirect()->route('caja.index', ['estudiante_id' => $estudianteId])
             ->with('success', 'Pago registrado correctamente.');
     }
 }

@@ -1,5 +1,5 @@
 /* ============================================
-   ESTUDIANTES.CSS - Gestión de Alumnos
+   ESTUDIANTES_INDEX.CSS - Gestión de Alumnos
    ============================================ */
 
 /* ---------- Variables ---------- */
@@ -415,6 +415,47 @@ table.data-table tbody td {
     color: var(--primary);
 }
 
+.btn-baja:hover {
+    background: var(--danger-light) !important;
+    color: var(--danger) !important;
+}
+
+.btn-caja:hover {
+    background: var(--success-light) !important;
+    color: var(--success) !important;
+}
+
+/* Fila inactiva */
+.fila-inactiva {
+    opacity: 0.5;
+}
+
+.fila-inactiva:hover {
+    opacity: 0.7;
+}
+
+.badge-inactivo {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    background: var(--gray-200);
+    color: var(--gray-600);
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-reactivar {
+    color: var(--success);
+}
+
+.btn-reactivar:hover {
+    background: var(--success-light) !important;
+    color: var(--success) !important;
+}
+
 .btn-accion svg {
     width: 18px;
     height: 18px;
@@ -537,4 +578,288 @@ table.data-table tbody td {
         font-size: 11px;
         text-transform: uppercase;
     }
+}
+
+/* ============================================
+   MODAL INFRAESTRUCTURA COMPARTIDA
+   (Usado por confirmación baja/reactivar)
+   ============================================ */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-container {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-container {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--gray-400);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--gray-200);
+}
+
+/* ============================================
+   FORMULARIOS MODAL
+   ============================================ */
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.form-group select,
+.form-group input[type="file"] {
+    width: 100%;
+}
+
+.form-group select {
+    padding: 10px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    font-family: inherit;
+}
+
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+}
+
+.btn-cancelar {
+    padding: 10px 20px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: var(--gray-600);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancelar:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+}
+
+.error-input {
+    border-color: var(--danger) !important;
+}
+
+.error {
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* ============================================
+   UTILIDADES / HELPERS
+   ============================================ */
+
+.text-danger { color: var(--danger); }
+.text-gray { color: var(--gray-500); }
+.text-gray-dark { color: var(--gray-700); }
+.text-center { text-align: center; }
+.mt-0 { margin-top: 0; }
+.mb-0 { margin-bottom: 0; }
+.mb-sm { margin-bottom: 16px; }
+.hidden { display: none; }
+
+.form-baja-inline {
+    display: inline;
+}
+
+.modal-container-sm {
+    max-width: 500px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray-500);
+}
+
+/* ============================================
+   MODAL CONFIRMACIÓN (Baja / Reactivar)
+   ============================================ */
+
+.confirm-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+}
+
+.confirm-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+/* Variante Rojo (Dar de baja) */
+.modal-confirm-danger .confirm-icon {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.modal-confirm-danger .modal-header {
+    background: linear-gradient(135deg, #C62828 0%, #B71C1C 100%);
+}
+
+.modal-confirm-danger .modal-header h3 {
+    color: var(--white);
+}
+
+.modal-confirm-danger .modal-header .modal-close {
+    color: rgba(255,255,255,0.7);
+}
+
+.modal-confirm-danger .modal-header .modal-close:hover {
+    background: rgba(255,255,255,0.15);
+    color: var(--white);
+}
+
+/* Variante Verde (Reactivar) */
+.modal-confirm-success .confirm-icon {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.modal-confirm-success .modal-header {
+    background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+}
+
+.modal-confirm-success .modal-header h3 {
+    color: var(--white);
+}
+
+.modal-confirm-success .modal-header .modal-close {
+    color: rgba(255,255,255,0.7);
+}
+
+.modal-confirm-success .modal-header .modal-close:hover {
+    background: rgba(255,255,255,0.15);
+    color: var(--white);
+}
+
+.confirm-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-900);
+    text-align: center;
+    margin: 0 0 8px;
+}
+
+.confirm-subtext {
+    font-size: 13px;
+    color: var(--gray-500);
+    text-align: center;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.btn-confirmar {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--white);
+}
+
+.modal-confirm-danger .btn-confirmar {
+    background: var(--danger);
+}
+
+.modal-confirm-danger .btn-confirmar:hover {
+    background: #B71C1C;
+}
+
+.modal-confirm-success .btn-confirmar {
+    background: var(--success);
+}
+
+.modal-confirm-success .btn-confirmar:hover {
+    background: #1B5E20;
 }

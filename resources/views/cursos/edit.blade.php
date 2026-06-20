@@ -2,11 +2,9 @@
 
 @section('title', 'Editar Programa - PostGrado Pro')
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/cursos_edit.css') }}">
-@endpush
-
 @section('content')
+
+<link rel="stylesheet" href="{{ asset('css/cursos_edit.css') }}?v={{ filemtime(public_path('css/cursos_edit.css')) }}">
 
 <!-- Breadcrumb -->
 <nav class="breadcrumb-perfil" style="margin-bottom: 16px;">
@@ -93,7 +91,7 @@
                         </div>
                     </div>
 
-                    <div class="form-row-prog dos">
+                    <div class="form-row-prog">
                         <div class="form-group-prog">
                             <label for="periodo">Periodo</label>
                             <div class="input-icon-wrapper">
@@ -109,6 +107,13 @@
                             <label for="cupo">Cupo Máximo</label>
                             <input type="number" id="cupo" name="cupo" placeholder="0"
                                    value="{{ old('cupo', $programa->cupo) }}" required min="1">
+                        </div>
+                        <div class="form-group-prog">
+                            <label for="activo">Estado</label>
+                            <select id="activo" name="activo">
+                                <option value="1" {{ old('activo', $programa->activo) ? 'selected' : '' }}>Activo</option>
+                                <option value="0" {{ old('activo', $programa->activo) ? '' : 'selected' }}>Inactivo</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -146,6 +151,24 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Costo por Módulo (calculado automáticamente, solo lectura) -->
+                    <div class="form-row-prog" style="grid-template-columns: 1fr;">
+                        <div class="form-group-prog">
+                            <label for="costo_modulo_display">
+                                Costo por Módulo (Bs)
+                                <span class="calc-tag">Calculado</span>
+                            </label>
+                            <div class="input-moneda input-moneda-readonly">
+                                <span class="prefix">Bs</span>
+                                <input type="text" id="costo_modulo_display" value="0.00" readonly tabindex="-1">
+                            </div>
+                            <span class="costo-modulo-nota">
+                                Total de módulos: <strong id="total_modulos_display">0</strong>
+                                · Costo Total ÷ Total de módulos (según el tipo de programa)
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -174,7 +197,7 @@
                                 <label>Módulos</label>
                                 <div class="modulo-counter">
                                     <button type="button" class="btn-minus">−</button>
-                                    <input type="number" id="nro_modulos_diplomado" name="nro_modulos_diplomado" value="{{ old('nro_modulos_diplomado', $programa->nro_modulos_diplomado) }}" min="1">
+                                    <input type="text" inputmode="numeric" id="nro_modulos_diplomado" name="nro_modulos_diplomado" value="{{ old('nro_modulos_diplomado', $programa->nro_modulos_diplomado) }}" min="1">
                                     <button type="button" class="btn-plus">+</button>
                                 </div>
                             </div>
@@ -199,7 +222,7 @@
                                 <label>Módulos</label>
                                 <div class="modulo-counter">
                                     <button type="button" class="btn-minus">−</button>
-                                    <input type="number" id="nro_modulos_especialidad" name="nro_modulos_especialidad" value="{{ old('nro_modulos_especialidad', $programa->nro_modulos_especialidad) }}" min="0">
+                                    <input type="text" inputmode="numeric" id="nro_modulos_especialidad" name="nro_modulos_especialidad" value="{{ old('nro_modulos_especialidad', $programa->nro_modulos_especialidad) }}" min="0">
                                     <button type="button" class="btn-plus">+</button>
                                 </div>
                             </div>
@@ -224,7 +247,7 @@
                                 <label>Módulos</label>
                                 <div class="modulo-counter">
                                     <button type="button" class="btn-minus">−</button>
-                                    <input type="number" id="nro_modulos_maestria" name="nro_modulos_maestria" value="{{ old('nro_modulos_maestria', $programa->nro_modulos_maestria) }}" min="0">
+                                    <input type="text" inputmode="numeric" id="nro_modulos_maestria" name="nro_modulos_maestria" value="{{ old('nro_modulos_maestria', $programa->nro_modulos_maestria) }}" min="0">
                                     <button type="button" class="btn-plus">+</button>
                                 </div>
                             </div>
@@ -245,32 +268,8 @@
 
     </div>
 
-    <!-- Estado -->
-    <div class="form-seccion form-seccion-estado">
-        <div class="form-seccion-header">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <h3>Estado del Programa</h3>
-        </div>
-        <div class="form-seccion-body">
-            <div class="form-row-prog dos">
-                <div class="form-group-prog">
-                    <label for="activo">Estado</label>
-                    <select id="activo" name="activo">
-                        <option value="1" {{ old('activo', $programa->activo) ? 'selected' : '' }}>Activo</option>
-                        <option value="0" {{ old('activo', $programa->activo) ? '' : 'selected' }}>Inactivo</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
 </form>
 
-@endsection
+<script src="{{ asset('js/cursos_form.js') }}?v={{ filemtime(public_path('js/cursos_form.js')) }}"></script>
 
-@push('scripts')
-<script src="{{ asset('js/cursos_form.js') }}"></script>
-@endpush
+@endsection

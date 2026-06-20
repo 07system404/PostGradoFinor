@@ -35,7 +35,6 @@ class PostGradoSeeder extends Seeder
             ]
         );
 
-        // Corregir cualquier usuario con role inválido (secretario, null, etc.)
         User::whereNotIn('role', ['admin', 'operador'])->update(['role' => 'operador']);
 
         // ─── CURSO ───────────────────────────────────────────────────────
@@ -100,6 +99,10 @@ class PostGradoSeeder extends Seeder
             ],
         ];
 
+        $nroModulosD = $curso->nro_modulos_diplomado;
+        $nroModulosE = $curso->nro_modulos_especialidad ?? 0;
+        $nroModulosM = $curso->nro_modulos_maestria ?? 0;
+
         foreach ($estudiantes as $data) {
             $comprobante = $data['comprobante_matricula'];
             unset($data['comprobante_matricula']);
@@ -120,61 +123,167 @@ class PostGradoSeeder extends Seeder
                 ]
             );
 
+            $descuento = $estudiante->descuento_porcentaje / 100;
+            $factorDescuento = 1 - $descuento;
+
+            $detallePlan = [];
+            $nroCuota = 0;
+
+            // 1. Matrícula
+            $nroCuota++;
+            $montoMatricula = $curso->costo_matricula;
+            $detallePlan[] = [
+                'nro_cuota' => $nroCuota, 'nro_modulo' => 0,
+                'concepto' => 'Matrícula', 'fase' => 'Matrícula',
+                'monto_programado' => $montoMatricula,
+                'monto_pagado' => 0, 'monto_descuento' => 0, 'saldo_cuota' => $montoMatricula,
+                'fecha_vencimiento' => '2026-04-21', 'estado' => 'Pendiente',
+            ];
+
+            // 2. Módulos Diplomado
+            $totalModulos = $nroModulosD + $nroModulosE + $nroModulosM;
+            $acumulado = 0;
+            $costoModuloBase = $totalModulos > 0 ? $curso->costo_total_estudio / $totalModulos : 0;
+
+            for ($i = 1; $i <= $nroModulosD; $i++) {
+                $nroCuota++;
+                $monto = $i < $nroModulosD
+                    ? $costoModuloBase * $factorDescuento
+                    : $curso->costo_total_estudio * $factorDescuento - $acumulado
+                      - ($nroModulosE + $nroModulosM) * $costoModuloBase * $factorDescuento;
+                $monto = round($monto, 2);
+                $acumulado += $costoModuloBase * $factorDescuento;
+                $detallePlan[] = [
+                    'nro_cuota' => $nroCuota, 'nro_modulo' => $i,
+                    'concepto' => 'Módulo ' . $i, 'fase' => 'Diplomado',
+                    'monto_programado' => $monto,
+                    'monto_pagado' => 0, 'monto_descuento' => 0, 'saldo_cuota' => $monto,
+                    'fecha_vencimiento' => now()->addMonths($nroCuota)->format('Y-m-d'), 'estado' => 'Pendiente',
+                ];
+            }
+
+            // 3. Defensa Diplomado
+            if ($curso->costo_defensa_diplomado > 0) {
+                $nroCuota++;
+                $monto = $curso->costo_defensa_diplomado;
+                $detallePlan[] = [
+                    'nro_cuota' => $nroCuota, 'nro_modulo' => null,
+                    'concepto' => 'Defensa Diplomado', 'fase' => 'Defensa',
+                    'monto_programado' => $monto,
+                    'monto_pagado' => 0, 'monto_descuento' => 0, 'saldo_cuota' => $monto,
+                    'fecha_vencimiento' => now()->addMonths($nroCuota)->format('Y-m-d'), 'estado' => 'Pendiente',
+                ];
+            }
+
+            // 4. Módulos Especialidad
+            for ($i = 1; $i <= $nroModulosE; $i++) {
+                $nroCuota++;
+                $monto = ($i === $nroModulosE && $nroModulosM === 0)
+                    ? round($curso->costo_total_estudio * $factorDescuento - $acumulado, 2)
+                    : round($costoModuloBase * $factorDescuento, 2);
+                $acumulado += $costoModuloBase * $factorDescuento;
+                $detallePlan[] = [
+                    'nro_cuota' => $nroCuota, 'nro_modulo' => $nroModulosD + $i,
+                    'concepto' => 'Módulo ' . ($nroModulosD + $i), 'fase' => 'Especialidad',
+                    'monto_programado' => $monto,
+                    'monto_pagado' => 0, 'monto_descuento' => 0, 'saldo_cuota' => $monto,
+                    'fecha_vencimiento' => now()->addMonths($nroCuota)->format('Y-m-d'), 'estado' => 'Pendiente',
+                ];
+            }
+
+            if ($curso->costo_defensa_especialidad > 0) {
+                $nroCuota++;
+                $monto = $curso->costo_defensa_especialidad;
+                $detallePlan[] = [
+                    'nro_cuota' => $nroCuota, 'nro_modulo' => null,
+                    'concepto' => 'Defensa Especialidad', 'fase' => 'Defensa',
+                    'monto_programado' => $monto,
+                    'monto_pagado' => 0, 'monto_descuento' => 0, 'saldo_cuota' => $monto,
+                    'fecha_vencimiento' => now()->addMonths($nroCuota)->format('Y-m-d'), 'estado' => 'Pendiente',
+                ];
+            }
+
+            // 5. Módulos Maestría
+            for ($i = 1; $i <= $nroModulosM; $i++) {
+                $nroCuota++;
+                $monto = $i === $nroModulosM
+                    ? round($curso->costo_total_estudio * $factorDescuento - $acumulado, 2)
+                    : round($costoModuloBase * $factorDescuento, 2);
+                $acumulado += $costoModuloBase * $factorDescuento;
+                $detallePlan[] = [
+                    'nro_cuota' => $nroCuota, 'nro_modulo' => $nroModulosD + $nroModulosE + $i,
+                    'concepto' => 'Módulo ' . ($nroModulosD + $nroModulosE + $i), 'fase' => 'Maestría',
+                    'monto_programado' => $monto,
+                    'monto_pagado' => 0, 'monto_descuento' => 0, 'saldo_cuota' => $monto,
+                    'fecha_vencimiento' => now()->addMonths($nroCuota)->format('Y-m-d'), 'estado' => 'Pendiente',
+                ];
+            }
+
+            if ($curso->costo_defensa_maestria > 0) {
+                $nroCuota++;
+                $monto = $curso->costo_defensa_maestria;
+                $detallePlan[] = [
+                    'nro_cuota' => $nroCuota, 'nro_modulo' => null,
+                    'concepto' => 'Defensa Maestría', 'fase' => 'Defensa',
+                    'monto_programado' => $monto,
+                    'monto_pagado' => 0, 'monto_descuento' => 0, 'saldo_cuota' => $monto,
+                    'fecha_vencimiento' => now()->addMonths($nroCuota)->format('Y-m-d'), 'estado' => 'Pendiente',
+                ];
+            }
+
+            $montoTotalProgramado = collect($detallePlan)->sum('monto_programado');
+
             $planPago = PlanPago::firstOrCreate(
                 ['inscripcion_id' => $inscripcion->id],
                 [
-                    'monto_total_programado' => 500,
+                    'monto_total_programado' => $montoTotalProgramado,
                     'monto_total_pagado'     => 0,
-                    'saldo_pendiente'        => 500,
-                    'total_cuotas'           => 1,
+                    'saldo_pendiente'        => $montoTotalProgramado,
+                    'total_cuotas'           => count($detallePlan),
                     'estado'                 => 'Pendiente',
                 ]
             );
 
-            $detalle = DetallePlanPago::firstOrCreate(
-                ['plan_pago_id' => $planPago->id, 'nro_cuota' => 1],
-                [
-                    'concepto'          => 'Matricula',
-                    'fase'              => 'Diplomado',
-                    'monto_programado'  => 500,
-                    'monto_pagado'      => 0,
-                    'monto_descuento'   => 0,
-                    'saldo_cuota'       => 500,
-                    'fecha_vencimiento' => '2026-04-21',
-                    'estado'            => 'Pendiente',
-                ]
-            );
+            $detalleCreado = false;
+            foreach ($detallePlan as $det) {
+                $detalle = DetallePlanPago::firstOrCreate(
+                    ['plan_pago_id' => $planPago->id, 'nro_cuota' => $det['nro_cuota']],
+                    $det
+                );
+                if ($det['concepto'] === 'Matrícula') {
+                    $detalleCreado = $detalle;
+                }
+            }
 
-            if ($detalle->wasRecentlyCreated || Pago::where('detalle_plan_pago_id', $detalle->id)->count() === 0) {
+            if ($detalleCreado && Pago::where('detalle_plan_pago_id', $detalleCreado->id)->count() === 0) {
                 Pago::create([
-                    'detalle_plan_pago_id' => $detalle->id,
+                    'detalle_plan_pago_id' => $detalleCreado->id,
                     'inscripcion_id'       => $inscripcion->id,
                     'fecha_pago'           => '2026-04-21',
-                    'monto'                => 500.00,
+                    'monto'                => $montoMatricula,
                     'nro_comprobante'      => $comprobante,
-                    'observacion'          => 'Pago de matricula inicial',
+                    'observacion'          => 'Pago de matrícula inicial',
                 ]);
 
-                $detalle->update([
-                    'monto_pagado' => 500,
+                $detalleCreado->update([
+                    'monto_pagado' => $montoMatricula,
                     'saldo_cuota'  => 0,
                     'estado'       => 'Pagado',
                 ]);
 
                 $planPago->update([
-                    'monto_total_pagado' => 500,
-                    'saldo_pendiente'    => 0,
-                    'estado'             => 'Pagado',
+                    'monto_total_pagado' => $montoMatricula,
+                    'saldo_pendiente'    => $montoTotalProgramado - $montoMatricula,
+                    'estado'             => 'Parcial',
                 ]);
 
-                $inscripcion->update(['estado_financiero' => 'Al Día']);
+                $inscripcion->update(['estado_financiero' => 'Parcial']);
             }
         }
 
         $this->command->info('✅ Seeder ejecutado:');
         $this->command->info('   • 2 usuarios (admin + operador)');
         $this->command->info('   • 1 curso (Maestría en Educación Superior)');
-        $this->command->info('   • 4 estudiantes inscritos con pagos registrados');
-        $this->command->info('   • Roles corregidos: solo admin y operador válidos');
+        $this->command->info('   • 4 estudiantes inscritos con cronogramas completos');
     }
 }

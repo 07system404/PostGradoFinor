@@ -2,11 +2,9 @@
 
 @section('title', 'Editar Usuario')
 
-@push('styles')
-    <link rel="stylesheet" href="{{ asset('css/personal_edit.css') }}">
-@endpush
-
 @section('content')
+
+<link rel="stylesheet" href="{{ asset('css/personal_edit.css') }}">
 <div class="personal-create">
     <h2>Editar Usuario</h2>
 

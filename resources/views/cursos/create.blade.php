@@ -2,11 +2,9 @@
 
 @section('title', 'Nuevo Programa Académico - PostGrado Pro')
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/cursos_create.css') }}">
-@endpush
-
 @section('content')
+
+<link rel="stylesheet" href="{{ asset('css/cursos_create.css') }}?v={{ filemtime(public_path('css/cursos_create.css')) }}">
 
 <!-- Breadcrumb -->
 <nav class="breadcrumb-perfil" style="margin-bottom: 16px;">
@@ -89,7 +87,7 @@
                         </div>
                     </div>
 
-                    <div class="form-row-prog dos">
+                    <div class="form-row-prog">
                         <div class="form-group-prog">
                             <label for="periodo">Periodo</label>
                             <div class="input-icon-wrapper">
@@ -103,6 +101,13 @@
                         <div class="form-group-prog">
                             <label for="cupo">Cupo Máximo</label>
                             <input type="number" id="cupo" name="cupo" placeholder="0" required min="1">
+                        </div>
+                        <div class="form-group-prog">
+                            <label for="activo">Estado</label>
+                            <select id="activo" name="activo">
+                                <option value="1" {{ old('activo', '1') == '1' ? 'selected' : '' }}>Activo</option>
+                                <option value="0" {{ old('activo') === '0' ? 'selected' : '' }}>Inactivo</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -138,6 +143,24 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Costo por Módulo (calculado automáticamente, solo lectura) -->
+                    <div class="form-row-prog" style="grid-template-columns: 1fr;">
+                        <div class="form-group-prog">
+                            <label for="costo_modulo_display">
+                                Costo por Módulo (Bs)
+                                <span class="calc-tag">Calculado</span>
+                            </label>
+                            <div class="input-moneda input-moneda-readonly">
+                                <span class="prefix">Bs</span>
+                                <input type="text" id="costo_modulo_display" value="0.00" readonly tabindex="-1">
+                            </div>
+                            <span class="costo-modulo-nota">
+                                Total de módulos: <strong id="total_modulos_display">0</strong>
+                                · Costo Total ÷ Total de módulos (según el tipo de programa)
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -166,7 +189,7 @@
                                 <label>Módulos</label>
                                 <div class="modulo-counter">
                                     <button type="button" class="btn-minus">−</button>
-                                    <input type="number" id="nro_modulos_diplomado" name="nro_modulos_diplomado" value="1" min="1" readonly>
+                                    <input type="text" inputmode="numeric" id="nro_modulos_diplomado" name="nro_modulos_diplomado" value="1" min="1">
                                     <button type="button" class="btn-plus">+</button>
                                 </div>
                             </div>
@@ -190,7 +213,7 @@
                                 <label>Módulos</label>
                                 <div class="modulo-counter">
                                     <button type="button" class="btn-minus">−</button>
-                                    <input type="number" id="nro_modulos_especialidad" name="nro_modulos_especialidad" value="0" min="0" readonly>
+                                    <input type="text" inputmode="numeric" id="nro_modulos_especialidad" name="nro_modulos_especialidad" value="0" min="0">
                                     <button type="button" class="btn-plus">+</button>
                                 </div>
                             </div>
@@ -214,7 +237,7 @@
                                 <label>Módulos</label>
                                 <div class="modulo-counter">
                                     <button type="button" class="btn-minus">−</button>
-                                    <input type="number" id="nro_modulos_maestria" name="nro_modulos_maestria" value="0" min="0" readonly>
+                                    <input type="text" inputmode="numeric" id="nro_modulos_maestria" name="nro_modulos_maestria" value="0" min="0">
                                     <button type="button" class="btn-plus">+</button>
                                 </div>
                             </div>
@@ -235,8 +258,6 @@
     </div>
 </form>
 
-@endsection
+<script src="{{ asset('js/cursos_form.js') }}?v={{ filemtime(public_path('js/cursos_form.js')) }}"></script>
 
-@push('scripts')
-<script src="{{ asset('js/cursos_form.js') }}"></script>
-@endpush
+@endsection

@@ -2,11 +2,9 @@
 
 @section('title', 'Registrar Nuevo Estudiante')
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/inscripciones.css') }}">
-@endpush
-
 @section('content')
+
+<link rel="stylesheet" href="{{ asset('css/estudiantes_create.css') }}">
 
 <!-- Top bar: breadcrumb + action buttons -->
 <div class="form-top-bar">
@@ -136,15 +134,7 @@
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="tipo_inscripcion">Tipo de Inscripción <span class="required">*</span></label>
-                                <select id="tipo_inscripcion" name="tipo_inscripcion">
-                                    <option value="Diplomado" {{ old('tipo_inscripcion') == 'Diplomado' ? 'selected' : '' }}>Diplomado</option>
-                                    <option value="Especialidad" {{ old('tipo_inscripcion') == 'Especialidad' ? 'selected' : '' }}>Especialidad</option>
-                                    <option value="Maestría" {{ old('tipo_inscripcion') == 'Maestría' ? 'selected' : '' }}>Maestría</option>
-                                </select>
-                            </div>
+                        <div class="form-row full">
                             <div class="form-group">
                                 <label for="fecha_inscripcion">Fecha de Inscripción <span class="required">*</span></label>
                                 <input type="date" id="fecha_inscripcion" name="fecha_inscripcion" value="{{ old('fecha_inscripcion', date('Y-m-d')) }}">
@@ -190,8 +180,6 @@
     </div>
 </form>
 
-@endsection
-
-@push('scripts')
 <script src="{{ asset('js/inscripciones.js') }}"></script>
-@endpush
+
+@endsection

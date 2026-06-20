@@ -4,19 +4,42 @@
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    // ---------- Búsqueda de alumnos en tiempo real ----------
+    // ---------- Búsqueda de alumnos en tiempo real (client-side) ----------
     const searchInput = document.getElementById('buscar-alumno-finanzas');
-    const searchForm = document.getElementById('form-buscar-finanzas');
-    let searchTimeout;
+    const listaAlumnos = document.querySelector('.lista-alumnos');
 
-    if (searchInput && searchForm) {
+    if (searchInput && listaAlumnos) {
         searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                if (this.value.length >= 2 || this.value.length === 0) {
-                    searchForm.submit();
+            const query = this.value.toLowerCase().trim();
+            const items = listaAlumnos.querySelectorAll('.alumno-item');
+            let visibles = 0;
+
+            items.forEach(function(item) {
+                const nombre = item.getAttribute('data-nombre') || '';
+                const cedula = item.getAttribute('data-cedula') || '';
+                const registro = item.getAttribute('data-registro') || '';
+                const coincide = !query ||
+                    nombre.indexOf(query) !== -1 ||
+                    cedula.indexOf(query) !== -1 ||
+                    registro.indexOf(query) !== -1;
+
+                item.style.display = coincide ? '' : 'none';
+                if (coincide) visibles++;
+            });
+
+            let emptyMsg = listaAlumnos.querySelector('.search-empty-msg');
+            if (visibles === 0 && query) {
+                if (!emptyMsg) {
+                    emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'search-empty-msg';
+                    emptyMsg.style.cssText = 'padding:20px;text-align:center;color:var(--gray-400);font-size:14px;';
+                    emptyMsg.textContent = 'No se encontraron alumnos.';
+                    listaAlumnos.appendChild(emptyMsg);
                 }
-            }, 500);
+                emptyMsg.style.display = '';
+            } else if (emptyMsg) {
+                emptyMsg.style.display = 'none';
+            }
         });
     }
 
@@ -30,38 +53,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ---------- Auto-hide alerts ----------
-    const alerts = document.querySelectorAll('.alert');
+    // ---------- Auto-hide alerts (solo mensajes flash, no resumen cards) ----------
+    const alerts = document.querySelectorAll('.alert-success, .alert-error');
     alerts.forEach(alert => {
         setTimeout(() => {
             alert.style.transition = 'opacity 0.5s ease';
             alert.style.opacity = '0';
             setTimeout(() => alert.remove(), 500);
         }, 4000);
-    });
-
-    // ---------- Animación de cards de resumen ----------
-    const resumenCards = document.querySelectorAll('.resumen-card');
-    resumenCards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(15px)';
-        setTimeout(() => {
-            card.style.transition = 'all 0.4s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, index * 100);
-    });
-
-    // ---------- Animación de filas del cronograma ----------
-    const filasCronograma = document.querySelectorAll('.cronograma-table tbody tr');
-    filasCronograma.forEach((fila, index) => {
-        fila.style.opacity = '0';
-        fila.style.transform = 'translateX(-10px)';
-        setTimeout(() => {
-            fila.style.transition = 'all 0.3s ease';
-            fila.style.opacity = '1';
-            fila.style.transform = 'translateX(0)';
-        }, index * 60);
     });
 
 });

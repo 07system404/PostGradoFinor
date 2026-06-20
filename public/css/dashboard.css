@@ -1,0 +1,154 @@
+/* ============================================
+   DASHBOARD.CSS - Panel principal
+   ============================================ */
+
+/* ---------- Sección 1: Tarjetas de métricas ---------- */
+.dash-metricas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+@media (max-width: 1024px) {
+    .dash-metricas {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .dash-metricas {
+        grid-template-columns: 1fr;
+    }
+}
+
+.metrica-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 22px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.metrica-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.metrica-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.metrica-icon svg {
+    width: 26px;
+    height: 26px;
+}
+
+.metrica-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.metrica-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.metrica-numero {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--gray-900);
+    word-break: break-word;
+}
+
+/* Colores por tarjeta */
+.metrica-azul   .metrica-icon { background: #E8EEFC; color: #1B4FD8; }
+.metrica-azul   .metrica-numero { color: #1B4FD8; }
+
+.metrica-verde  .metrica-icon { background: #E8F5E9; color: #16a34a; }
+.metrica-verde  .metrica-numero { color: #16a34a; }
+
+.metrica-rojo   .metrica-icon { background: #FFEBEE; color: #dc2626; }
+.metrica-rojo   .metrica-numero { color: #dc2626; }
+
+.metrica-morado .metrica-icon { background: #F3E8FF; color: #7c3aed; }
+.metrica-morado .metrica-numero { color: #7c3aed; }
+
+.metrica-naranja .metrica-icon { background: #FFF3E0; color: #ea580c; }
+.metrica-naranja .metrica-numero { color: #ea580c; }
+
+/* ---------- Sección 2: Gráficos ---------- */
+.dash-graficos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+@media (max-width: 900px) {
+    .dash-graficos {
+        grid-template-columns: 1fr;
+    }
+}
+
+.grafico-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* El gráfico de ingresos ocupa toda la fila superior */
+.grafico-full {
+    grid-column: 1 / -1;
+}
+
+.grafico-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.grafico-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.grafico-sub {
+    font-size: 12px;
+    color: var(--gray-400);
+    font-weight: 500;
+}
+
+.grafico-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 300px;
+}
+
+/* El donut un poco más compacto y centrado */
+.grafico-canvas-donut {
+    height: 280px;
+}

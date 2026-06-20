@@ -1,6 +1,6 @@
-/* =========================================
-   BACKUP.CSS — PostGrado Pro
-   ========================================= */
+/* 
+   BACKUP.CSS — PostGrado
+*/
 
 .backup-header { margin-bottom: 24px; }
 
@@ -202,7 +202,7 @@
     .backup-grid { grid-template-columns: 1fr; }
 }
 
-/* ===== RESTAURAR ===== */
+/*  RESTAURAR  */
 .backup-card--restore { border-color: #fed7aa; }
 
 .backup-card-icon--orange { background: #fff7ed; color: #ea580c; }

@@ -20,12 +20,15 @@ class Curso extends Model
         'nro_modulos_diplomado',
         'nro_modulos_especialidad',
         'nro_modulos_maestria',
+        'total_modulos',
+        'costo_modulo',
         'cupo',
         'activo',
     ];
 
     protected $casts = [
         'activo' => 'boolean',
+        'costo_modulo' => 'decimal:2',
     ];
 
     //  Relaciones
@@ -38,6 +41,28 @@ class Curso extends Model
             'Maestría' => $this->nro_modulos_maestria ?? 0,
             default => 0,
         };
+    }
+
+    /**
+     * Total de módulos según el tipo de programa: las etapas son acumulativas
+     * (para llegar a Especialidad se cursa Diplomado; para Maestría, las tres).
+     */
+    public static function calcularTotalModulos(string $tipo, int $diplomado, int $especialidad, int $maestria): int
+    {
+        return match ($tipo) {
+            'Diplomado' => $diplomado,
+            'Especialidad' => $diplomado + $especialidad,
+            'Maestría' => $diplomado + $especialidad + $maestria,
+            default => $diplomado,
+        };
+    }
+
+    /**
+     * Costo de cada módulo/cuota = Costo Total de Estudios ÷ Total de módulos.
+     */
+    public static function calcularCostoModulo(float $costoTotalEstudio, int $totalModulos): float
+    {
+        return $totalModulos > 0 ? round($costoTotalEstudio / $totalModulos, 2) : 0.0;
     }
 
     public function getCostoDefensaForTipo(string $tipo): float

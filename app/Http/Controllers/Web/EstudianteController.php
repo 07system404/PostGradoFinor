@@ -7,19 +7,21 @@ use App\Models\Estudiante;
 use App\Models\Inscripcion;
 use App\Models\Curso;
 use App\Models\Documento;
+use App\Traits\GeneraPlanDePagos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class EstudianteController extends Controller
 {
+    use GeneraPlanDePagos;
+
     /**
      * Listado de estudiantes (como en la imagen 134808)
      */
     public function index(Request $request)
     {
-        $query = Estudiante::with(['inscripciones.curso', 'documentos'])
-            ->where('activo', true);
+        $query = Estudiante::with(['inscripciones.curso', 'documentos']);
 
         // Búsqueda
         if ($request->filled('search')) {
@@ -84,7 +86,6 @@ class EstudianteController extends Controller
         if ($request->filled('inscribir_ahora')) {
             $rules = array_merge($rules, [
                 'curso_id' => 'required|exists:cursos,id',
-                'tipo_inscripcion' => 'required|in:Diplomado,Especialidad,Maestría',
                 'fecha_inscripcion' => 'required|date',
                 'modalidad_pago' => 'required|in:Contado,Cuotas',
                 'descuento_porcentaje' => 'nullable|integer|min:0|max:100',
@@ -94,7 +95,6 @@ class EstudianteController extends Controller
         $messages = [
             'inscribir_ahora.accepted' => 'Debe aceptar la opción de inscribir ahora si desea registrar al estudiante en un curso.',
             'curso_id.required' => 'Debe seleccionar un curso si desea inscribir al estudiante ahora.',
-            'tipo_inscripcion.required' => 'Debe seleccionar un tipo de inscripción.',
             'fecha_inscripcion.required' => 'Debe indicar la fecha de inscripción.',
             'modalidad_pago.required' => 'Debe elegir una modalidad de pago.',
         ];
@@ -117,10 +117,13 @@ class EstudianteController extends Controller
 
             // 2. Solo crear inscripción si el usuario marcó la opción
             if (!empty($validated['curso_id'])) {
+                $curso = Curso::find($validated['curso_id']);
+                $tipoInscripcion = $curso->tipo;
+
                 $inscripcion = Inscripcion::create([
                     'estudiante_id' => $estudiante->id,
                     'curso_id' => $validated['curso_id'],
-                    'tipo_inscripcion' => $validated['tipo_inscripcion'] ?? 'Diplomado',
+                    'tipo_inscripcion' => $tipoInscripcion,
                     'fecha_inscripcion' => $validated['fecha_inscripcion'],
                     'estado_academico' => 'Pendiente',
                     'estado_financiero' => 'Sin Pagar',
@@ -129,7 +132,6 @@ class EstudianteController extends Controller
                 ]);
 
                 // 3. Crear plan de pagos y detalles por módulos/defensa
-                $curso = Curso::find($validated['curso_id']);
                 $descuento = $estudiante->descuento_porcentaje / 100;
 
                 $this->crearPlanDePagos(
@@ -137,7 +139,7 @@ class EstudianteController extends Controller
                     $curso,
                     $descuento,
                     $validated['modalidad_pago'],
-                    $validated['tipo_inscripcion']
+                    $tipoInscripcion
                 );
             }
         });
@@ -150,98 +152,85 @@ class EstudianteController extends Controller
             ->with('success', $msg);
     }
 
-    private function crearPlanDePagos(
-        Inscripcion $inscripcion,
-        Curso $curso,
-        float $descuento,
-        string $modalidadPago,
-        string $tipoInscripcion
-    ): void {
-        $nroModulos = $curso->getNroModulosForTipo($tipoInscripcion);
-        $costoDefensa = $curso->getCostoDefensaForTipo($tipoInscripcion);
-        $totalEstudio = $curso->costo_total_estudio;
-        $totalConDescuento = $totalEstudio - ($totalEstudio * $descuento);
-        $totalProgramado = $totalConDescuento + $costoDefensa;
-
-        $detallePlan = [];
-        if ($nroModulos > 0) {
-            $montoModulo = $nroModulos > 0 ? round($totalConDescuento / $nroModulos, 2) : 0;
-            $montoAcumulado = 0;
-            for ($i = 1; $i <= $nroModulos; $i++) {
-                $monto = $i === $nroModulos ? $totalConDescuento - $montoAcumulado : $montoModulo;
-                $montoAcumulado += $monto;
-                $detallePlan[] = [
-                    'nro_cuota' => $i,
-                    'nro_modulo' => $i,
-                    'concepto' => 'Módulo '.$i,
-                    'fase' => 'Módulo',
-                    'monto_programado' => $monto,
-                    'monto_pagado' => 0,
-                    'monto_descuento' => 0,
-                    'saldo_cuota' => $monto,
-                    'fecha_vencimiento' => now()->addMonths($i),
-                    'estado' => 'Pendiente',
-                ];
-            }
-        }
-
-        if ($costoDefensa > 0) {
-            $detallePlan[] = [
-                'nro_cuota' => count($detallePlan) + 1,
-                'nro_modulo' => null,
-                'concepto' => 'Defensa',
-                'fase' => 'Defensa',
-                'monto_programado' => $costoDefensa,
-                'monto_pagado' => 0,
-                'monto_descuento' => 0,
-                'saldo_cuota' => $costoDefensa,
-                'fecha_vencimiento' => now()->addMonths(count($detallePlan) + 1),
-                'estado' => 'Pendiente',
-            ];
-        }
-
-        if (empty($detallePlan)) {
-            $detallePlan[] = [
-                'nro_cuota' => 1,
-                'nro_modulo' => null,
-                'concepto' => 'Programa completo',
-                'fase' => $tipoInscripcion,
-                'monto_programado' => $totalProgramado,
-                'monto_pagado' => 0,
-                'monto_descuento' => 0,
-                'saldo_cuota' => $totalProgramado,
-                'fecha_vencimiento' => now()->addMonth(),
-                'estado' => 'Pendiente',
-            ];
-        }
-
-        $plan = \App\Models\PlanPago::create([
-            'inscripcion_id' => $inscripcion->id,
-            'monto_total_programado' => $totalProgramado,
-            'monto_total_pagado' => 0,
-            'saldo_pendiente' => $totalProgramado,
-            'total_cuotas' => count($detallePlan),
-            'estado' => 'Pendiente',
+    /**
+     * Inscribir estudiante en un curso (desde el modal del perfil)
+     */
+    public function inscribirCurso(Request $request, Estudiante $estudiante)
+    {
+        $validated = $request->validate([
+            'curso_id' => 'required|exists:cursos,id',
+            'fecha_inscripcion' => 'required|date',
+            'modalidad_pago' => 'required|in:Contado,Cuotas',
+            'porcentaje_descuento' => 'nullable|numeric|min:0|max:100',
         ]);
 
-        foreach ($detallePlan as $detalle) {
-            \App\Models\DetallePlanPago::create(array_merge($detalle, ['plan_pago_id' => $plan->id]));
+        $existe = Inscripcion::where('estudiante_id', $estudiante->id)
+            ->where('curso_id', $validated['curso_id'])
+            ->exists();
+
+        if ($existe) {
+            return back()->with('error', 'El estudiante ya está inscrito en este curso.');
         }
+
+        $curso = Curso::find($validated['curso_id']);
+        $tipoInscripcion = $curso->tipo;
+        $descuento = ($validated['porcentaje_descuento'] ?? 0) / 100;
+
+        DB::transaction(function () use ($estudiante, $validated, $curso, $tipoInscripcion, $descuento) {
+            $inscripcion = Inscripcion::create([
+                'estudiante_id' => $estudiante->id,
+                'curso_id' => $validated['curso_id'],
+                'tipo_inscripcion' => $tipoInscripcion,
+                'fecha_inscripcion' => $validated['fecha_inscripcion'],
+                'estado_academico' => 'Pendiente',
+                'estado_financiero' => 'Sin Pagar',
+                'modalidad_pago' => $validated['modalidad_pago'],
+                'observacion' => null,
+            ]);
+
+            $this->crearPlanDePagos(
+                $inscripcion,
+                $curso,
+                $descuento,
+                $validated['modalidad_pago'],
+                $tipoInscripcion
+            );
+        });
+
+        return redirect()->back()
+            ->with('success', 'Inscripción agregada correctamente.');
     }
 
     /**
      * Detalle del estudiante (como en la imagen 134919)
      */
-    public function show(Estudiante $estudiante)
+    public function show(Request $request, Estudiante $estudiante)
     {
         $estudiante->load(['inscripciones.curso', 'documentos']);
         $cursos = Curso::where('activo', true)->get();
-        
+
         // Tipos de documentos requeridos
         $tiposDocumentos = ['Grado de Bachiller', 'Certificado de Idiomas', 'Copia de DNI / Pasaporte'];
         $documentosSubidos = $estudiante->documentos->pluck('tipo')->toArray();
 
-        return view('estudiantes.show', compact('estudiante', 'cursos', 'tiposDocumentos', 'documentosSubidos'));
+        // Breadcrumb contextual según el origen de la navegación.
+        // Por defecto vuelve a "Gestión de Alumnos"; si se llega desde el detalle
+        // de un programa (from=programa&programa_id=X), vuelve a ese programa.
+        $breadcrumb = [
+            'url'   => route('estudiantes.index'),
+            'label' => 'Gestión de Alumnos',
+        ];
+        if ($request->query('from') === 'programa' && $request->filled('programa_id')) {
+            $programa = Curso::find($request->query('programa_id'));
+            if ($programa) {
+                $breadcrumb = [
+                    'url'   => route('programas.show', $programa->id),
+                    'label' => $programa->nombre,
+                ];
+            }
+        }
+
+        return view('estudiantes.show', compact('estudiante', 'cursos', 'tiposDocumentos', 'documentosSubidos', 'breadcrumb'));
     }
 
     /**
@@ -270,5 +259,27 @@ class EstudianteController extends Controller
     public function edit(Estudiante $estudiante)
     {
         return redirect()->route('estudiantes.show', $estudiante);
+    }
+
+    /**
+     * Dar de baja un estudiante (marcar como inactivo)
+     */
+    public function destroy(Estudiante $estudiante)
+    {
+        $estudiante->update(['activo' => false]);
+
+        return redirect()->route('estudiantes.index')
+            ->with('success', 'El alumno "' . $estudiante->nombre_completo . '" ha sido dado de baja correctamente.');
+    }
+
+    /**
+     * Reactivar un estudiante dado de baja
+     */
+    public function reactivate(Estudiante $estudiante)
+    {
+        $estudiante->update(['activo' => true]);
+
+        return redirect()->route('estudiantes.index')
+            ->with('success', 'El alumno "' . $estudiante->nombre_completo . '" ha sido reactivado correctamente.');
     }
 }

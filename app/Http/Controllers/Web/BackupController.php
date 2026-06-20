@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class BackupController extends Controller
 {
     private string $backupDir = 'backups';
 
-    // ─── PANTALLA PRINCIPAL ───────────────────────────────────────────────────
+    //  PANTALLA PRINCIPAL 
     public function index()
     {
         $dbPath   = database_path('database.sqlite');
@@ -21,7 +22,7 @@ class BackupController extends Controller
 
         $backupPath = storage_path('app/' . $this->backupDir);
         if (is_dir($backupPath)) {
-            $archivos = glob($backupPath . '/respaldo_*.sqlite');
+            $archivos = glob($backupPath . '/backup_diario_*.sqlite');
             usort($archivos, fn($a, $b) => filemtime($b) - filemtime($a));
 
             foreach ($archivos as $archivo) {
@@ -39,7 +40,7 @@ class BackupController extends Controller
         return view('backup.index', compact('tamanoDb', 'ultimoRespaldo', 'historial'));
     }
 
-    // ─── GENERAR Y DESCARGAR RESPALDO ────────────────────────────────────────
+    //  GENERAR Y DESCARGAR RESPALDO 
     public function generate()
     {
         $dbPath = database_path('database.sqlite');
@@ -67,10 +68,10 @@ class BackupController extends Controller
         ]);
     }
 
-    // ─── DESCARGAR UN RESPALDO DEL HISTORIAL ─────────────────────────────────
+    //  DESCARGAR UN RESPALDO DEL HISTORIAL 
     public function download(string $nombre)
     {
-        if (!preg_match('/^respaldo_[\d_\-]+\.sqlite$/', $nombre)) {
+        if (!preg_match('/^(respaldo|backup_diario)_[\d_\-]+\.sqlite$/', $nombre)) {
             abort(404);
         }
 
@@ -85,7 +86,7 @@ class BackupController extends Controller
         ]);
     }
 
-    // ─── RESTAURAR DESDE ARCHIVO SUBIDO ──────────────────────────────────────
+    //  RESTAURAR DESDE ARCHIVO SUBIDO 
     public function restore(Request $request)
     {
         $request->validate([
@@ -112,18 +113,22 @@ class BackupController extends Controller
             return back()->with('error', 'No se pudo restaurar: ' . $e->getMessage());
         }
 
-        return redirect()->route('backup.index')
-                         ->with('success', 'Base de datos restaurada correctamente. El sistema ahora muestra los datos del respaldo seleccionado.');
+        Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+
+        return redirect()->route('login')
+                         ->with('success', 'Base de datos restaurada correctamente. Inicie sesion nuevamente.');
     }
 
-    // ─── RESTAURAR DESDE HISTORIAL INTERNO ───────────────────────────────────
+    //  RESTAURAR DESDE HISTORIAL INTERNO 
     public function restoreSaved(Request $request)
     {
         $request->validate(['nombre' => 'required|string']);
 
         $nombre = $request->nombre;
 
-        if (!preg_match('/^respaldo_[\d_\-]+\.sqlite$/', $nombre)) {
+        if (!preg_match('/^(respaldo|backup_diario)_[\d_\-]+\.sqlite$/', $nombre)) {
             return back()->with('error', 'Nombre de archivo inválido.');
         }
 
@@ -144,11 +149,15 @@ class BackupController extends Controller
             return back()->with('error', 'No se pudo restaurar: ' . $e->getMessage());
         }
 
-        return redirect()->route('backup.index')
-                         ->with('success', "Restaurado desde: {$nombre}. El sistema muestra los datos de ese respaldo.");
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')
+                         ->with('success', 'Base de datos restaurada correctamente. Inicie sesion nuevamente.');
     }
 
-    // ─── RESPALDO AUTOMÁTICO ANTES DE RESTAURAR ───────────────────────────────
+    //  RESPALDO AUTOMÁTICO ANTES DE RESTAURAR 
     private function autoBackup(string $dbPath): void
     {
         if (!file_exists($dbPath)) return;
@@ -162,7 +171,7 @@ class BackupController extends Controller
         copy($dbPath, $backupPath . '/' . $nombreAuto);
     }
 
-    // ─── HELPER ──────────────────────────────────────────────────────────────
+    //  HELPER 
     private function formatBytes(int $bytes): string
     {
         if ($bytes >= 1048576) return round($bytes / 1048576, 2) . ' MB';

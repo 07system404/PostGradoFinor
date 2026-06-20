@@ -266,6 +266,48 @@
     background: #f8fafc;
 }
 
+/* ---------- Acciones de fila (mismo estilo que Gestión de Alumnos) ---------- */
+.curso-show-table .acciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.curso-show-table .btn-accion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--gray-400);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.curso-show-table .btn-accion:hover {
+    background: var(--gray-100);
+    color: var(--primary);
+}
+
+.curso-show-table .btn-baja:hover {
+    background: var(--danger-light) !important;
+    color: var(--danger) !important;
+}
+
+.curso-show-table .btn-caja:hover {
+    background: var(--success-light) !important;
+    color: var(--success) !important;
+}
+
+.curso-show-table .btn-accion svg {
+    width: 18px;
+    height: 18px;
+}
+
 .curso-show-table tbody tr:last-child td {
     border-bottom: none;
 }

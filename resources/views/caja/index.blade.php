@@ -1,12 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Caja y Facturación - PostGrado Pro')
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/caja_index.css') }}">
-@endpush
+@section('title', 'Caja y Facturación')
 
 @section('content')
+
+<link rel="stylesheet" href="{{ asset('css/caja.css') }}?v={{ filemtime(public_path('css/caja.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/form-inscripcion-programa.css') }}?v={{ filemtime(public_path('css/form-inscripcion-programa.css')) }}">
 
 <!-- Mensajes -->
 @if(session('success'))
@@ -16,21 +15,55 @@
 <div class="alert alert-error">{{ session('error') }}</div>
 @endif
 
+<!-- Tarjetas de Resumen Global + Botón Pago -->
+<div class="resumen-global">
+    <div class="resumen-global-card resumen-pagado">
+        <div class="resumen-global-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+        <div class="resumen-global-info">
+            <span class="resumen-global-label">Total Pago Realizado</span>
+            <span class="resumen-global-monto">Bs {{ number_format($totalPagadoGlobal, 2) }}</span>
+        </div>
+    </div>
+    <div class="resumen-global-card resumen-deuda">
+        <div class="resumen-global-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+        </div>
+        <div class="resumen-global-info">
+            <span class="resumen-global-label">Total Deuda Pendiente</span>
+            <span class="resumen-global-monto">Bs {{ number_format($totalDeudaGlobal, 2) }}</span>
+        </div>
+    </div>
+    <a href="{{ route('caja.pago.formulario') }}" class="resumen-global-btn-pago" id="btn-ir-pago">
+        <div class="btn-pago-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+            </svg>
+        </div>
+        <span class="btn-pago-texto">Registrar</span>
+        <span class="btn-pago-subtexto">Pago</span>
+    </a>
+</div>
+
 <div class="finanzas-layout">
     <!-- Panel Izquierdo: Lista de Alumnos -->
     <div class="panel-alumnos">
         <div class="panel-alumnos-header">
-            <form id="form-buscar-finanzas" action="{{ route('caja.index') }}" method="GET" class="busqueda-finanzas">
+            <div class="busqueda-finanzas">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="8" y1="6" x2="21" y2="6"/>
-                    <line x1="8" y1="12" x2="21" y2="12"/>
-                    <line x1="8" y1="18" x2="21" y2="18"/>
-                    <line x1="3" y1="6" x2="3.01" y2="6"/>
-                    <line x1="3" y1="12" x2="3.01" y2="12"/>
-                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <input type="text" name="buscar" id="buscar-alumno-finanzas" placeholder="Filtrar por nombre o ID" value="{{ request('buscar') }}">
-            </form>
+                <input type="text" id="buscar-alumno-finanzas" placeholder="Buscar por nombre, cédula, registro...">
+            </div>
         </div>
 
         <div class="lista-alumnos">
@@ -39,14 +72,17 @@
                     $claseBadge = match($est->estado_financiero_label) {
                         'Al Día' => 'badge-al-dia',
                         'En Mora' => 'badge-en-mora',
-                        'Sin Pagar' => 'badge-sin-pagar',
-                        'Parcial' => 'badge-parcial',
-                        default => 'badge-sin-pagar',
+                        'Matrícula Pendiente' => 'badge-matricula-pendiente',
+                        'Sin Inscribir' => 'badge-sin-inscribir',
+                        default => 'badge-sin-inscribir',
                     };
                     $isActive = $estudianteSeleccionado && $estudianteSeleccionado->id == $est->id;
                 @endphp
                 <a href="{{ route('caja.index', array_merge(request()->all(), ['estudiante_id' => $est->id])) }}" 
-                   class="alumno-item {{ $isActive ? 'active' : '' }}">
+                   class="alumno-item {{ $isActive ? 'active' : '' }}"
+                   data-nombre="{{ strtolower($est->nombre_completo) }}"
+                   data-cedula="{{ strtolower($est->cedula ?? '') }}"
+                   data-registro="{{ strtolower($est->registro ?? '') }}">
                     <span class="alumno-nombre">{{ $est->nombre_completo }}</span>
                     <span class="badge-financiero {{ $claseBadge }}">{{ strtoupper($est->estado_financiero_label) }}</span>
                 </a>
@@ -58,27 +94,41 @@
         </div>
     </div>
 
-    <!-- Panel Derecho: Detalle de Cuenta -->
+    <!-- Panel Derecho: Detalle de Cuenta / Modal Inscripción -->
     <div class="panel-detalle">
-        @if($estudianteSeleccionado && $inscripcionSeleccionada && $planPago)
+        @if($estudianteSeleccionado && $mostrarModalInscripcion)
+
+            <x-form-inscripcion-programa :alumno-id="$estudianteSeleccionado->id" />
+
+            <div class="sin-seleccion">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="2" y="5" width="20" height="14" rx="2"/>
+                    <line x1="2" y1="10" x2="22" y2="10"/>
+                    <line x1="6" y1="15" x2="6.01" y2="15"/>
+                    <line x1="10" y1="15" x2="10.01" y2="15"/>
+                </svg>
+                <h3>Alumno sin inscripción</h3>
+                <p>Este alumno no tiene ningún programa inscrito. Haga clic en el botón superior para inscribirlo.</p>
+                <button type="button" class="btn-inscribir-caja" id="btn-nueva-inscripcion">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Nueva Inscripción
+                </button>
+            </div>
+
+        @elseif($estudianteSeleccionado && $inscripcionSeleccionada && $planPago)
 
             <!-- Header del detalle -->
             <div class="detalle-header">
                 <h2>Detalle de Cuenta: {{ $estudianteSeleccionado->nombre_completo }}</h2>
             </div>
 
-            <div class="curso-meta-grid">
+            <div class="curso-meta-grid dos-columnas">
                 <div class="curso-meta-card">
                     <span>Programa</span>
                     <strong>{{ $inscripcionSeleccionada->curso->nombre }} ({{ $inscripcionSeleccionada->tipo_inscripcion }})</strong>
-                </div>
-                <div class="curso-meta-card">
-                    <span>Módulos</span>
-                    <strong>{{ $inscripcionSeleccionada->curso->getNroModulosForTipo($inscripcionSeleccionada->tipo_inscripcion) }}</strong>
-                </div>
-                <div class="curso-meta-card">
-                    <span>Costo Defensa</span>
-                    <strong>Bs {{ number_format($inscripcionSeleccionada->curso->getCostoDefensaForTipo($inscripcionSeleccionada->tipo_inscripcion), 2) }}</strong>
                 </div>
             </div>
 
@@ -217,7 +267,10 @@
                             </td>
                             <td>
                                 @if($detalle->estado === 'Pagado')
-                                    <a href="#" class="btn-ver-pago">Ver</a>
+                                    <a href="{{ route('caja.pago.recibo', $detalle->id) }}" class="btn-ver-pago">Ver recibo</a>
+                                @elseif($detalle->monto_pagado > 0)
+                                    <a href="{{ route('caja.pago.recibo', $detalle->id) }}" class="btn-ver-pago">Ver pagos</a>
+                                    <a href="{{ route('caja.pago.formulario', $detalle->id) }}" class="btn-cobrar">Cobrar</a>
                                 @elseif($isVencido || $detalle->estado === 'Pendiente' || $detalle->estado === 'Parcial')
                                     <a href="{{ route('caja.pago.formulario', $detalle->id) }}" class="btn-cobrar">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -251,8 +304,7 @@
     </div>
 </div>
 
-@endsection
+<script src="{{ asset('js/caja_index.js') }}?v={{ filemtime(public_path('js/caja_index.js')) }}"></script>
+<script src="{{ asset('js/form-inscripcion-programa.js') }}"></script>
 
-@push('scripts')
-<script src="{{ asset('js/caja_index.js') }}"></script>
-@endpush
+@endsection

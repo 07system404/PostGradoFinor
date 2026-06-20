@@ -11,11 +11,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const btnPlus = counter.querySelector('.btn-plus');
         const input = counter.querySelector('input');
 
+        // Respeta el mínimo declarado en cada input (Diplomado = 1, otros = 0)
+        const minVal = parseInt(input?.getAttribute('min')) || 0;
+
         if (btnMinus && input) {
             btnMinus.addEventListener('click', function() {
                 let val = parseInt(input.value) || 0;
-                if (val > 0) {
+                if (val > minVal) {
                     input.value = val - 1;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
                 }
             });
         }
@@ -24,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btnPlus.addEventListener('click', function() {
                 let val = parseInt(input.value) || 0;
                 input.value = val + 1;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
             });
         }
 
@@ -33,6 +38,55 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+
+    // ---------- Cálculo dinámico del Costo por Módulo ----------
+    // Total de módulos acumulativo según el tipo de programa:
+    //   Diplomado    → Diplomado
+    //   Especialidad → Diplomado + Especialidad
+    //   Maestría     → Diplomado + Especialidad + Maestría
+    // Costo por Módulo = Costo Total de Estudios ÷ Total de módulos.
+    const tipoSelect = document.getElementById('tipo');
+    const costoTotalInput = document.getElementById('costo_total_estudio');
+    const modDiplomado = document.getElementById('nro_modulos_diplomado');
+    const modEspecialidad = document.getElementById('nro_modulos_especialidad');
+    const modMaestria = document.getElementById('nro_modulos_maestria');
+    const totalModulosOut = document.getElementById('total_modulos_display');
+    const costoModuloOut = document.getElementById('costo_modulo_display');
+
+    function valor(el) {
+        return el ? (parseFloat(el.value) || 0) : 0;
+    }
+
+    function recalcularCostoModulo() {
+        if (!costoModuloOut) return;
+
+        const tipo = tipoSelect ? tipoSelect.value : 'Diplomado';
+        const dip = valor(modDiplomado);
+        const esp = valor(modEspecialidad);
+        const mae = valor(modMaestria);
+
+        let totalModulos = dip;
+        if (tipo === 'Especialidad') {
+            totalModulos = dip + esp;
+        } else if (tipo === 'Maestría') {
+            totalModulos = dip + esp + mae;
+        }
+
+        const costoTotal = valor(costoTotalInput);
+        const costoModulo = totalModulos > 0 ? costoTotal / totalModulos : 0;
+
+        if (totalModulosOut) totalModulosOut.textContent = totalModulos;
+        costoModuloOut.value = costoModulo.toFixed(2);
+    }
+
+    [tipoSelect, costoTotalInput, modDiplomado, modEspecialidad, modMaestria].forEach(el => {
+        if (!el) return;
+        el.addEventListener('input', recalcularCostoModulo);
+        el.addEventListener('change', recalcularCostoModulo);
+    });
+
+    // Cálculo inicial al cargar la página (refleja los valores guardados en edición)
+    recalcularCostoModulo();
 
     // ---------- Formatear inputs de moneda ----------
     const monedaInputs = document.querySelectorAll('.input-moneda input');

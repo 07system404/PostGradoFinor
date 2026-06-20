@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // ─── 1. ESTUDIANTES ───────────────────────────────────────────────────
+        //  1. ESTUDIANTES 
         Schema::create('estudiantes', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('nombres', 50);
@@ -28,7 +28,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // ─── 2. CURSOS ────────────────────────────────────────────────────────
+        //  2. CURSOS 
         Schema::create('cursos', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('nombre', 100);
@@ -54,7 +54,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // ─── 3. INSCRIPCIONES ─────────────────────────────────────────────────
+        //  3. INSCRIPCIONES 
         Schema::create('inscripciones', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('estudiante_id');
@@ -83,7 +83,7 @@ return new class extends Migration
             $table->unique(['estudiante_id', 'curso_id']);
         });
 
-        // ─── 4. PLAN DE PAGOS ─────────────────────────────────────────────────
+        //  4. PLAN DE PAGOS 
         Schema::create('plan_pagos', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('inscripcion_id');
@@ -100,7 +100,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // ─── 5. DETALLE DEL PLAN DE PAGOS ────────────────────────────────────
+        //  5. DETALLE DEL PLAN DE PAGOS 
         Schema::create('detalle_plan_pagos', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('plan_pago_id');
@@ -122,7 +122,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // ─── 6. PAGOS ─────────────────────────────────────────────────────────
+        //  6. PAGOS 
         Schema::create('pagos', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('detalle_plan_pago_id');
@@ -139,7 +139,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // ─── 7. DOCUMENTOS ───────────────────────────────────────────────────
+        //  7. DOCUMENTOS 
         Schema::create('documentos', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('estudiante_id');
