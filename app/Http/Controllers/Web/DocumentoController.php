@@ -32,4 +32,5 @@ class DocumentoController extends Controller
         return redirect()->route('estudiantes.show', $estudiante)
             ->with('success', 'Documento subido correctamente.');
     }
+
 }

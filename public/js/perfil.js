@@ -177,11 +177,165 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ---------- Cargar documento ----------
     const btnCargarDoc = document.getElementById('btn-cargar-documento');
+    // ---------- Modal de Cargar Documento ----------
+    const btnCargarDoc = document.getElementById('btn-cargar-documento');
+    const modalDoc = document.getElementById('modal-cargar-documento');
+    const btnCerrarModalDoc = document.getElementById('cerrar-modal-doc');
+    const docDropzone = document.getElementById('doc-dropzone');
+    const docArchivoInput = document.getElementById('doc-archivo');
+    const formCargarDoc = document.getElementById('form-cargar-documento');
+
+    function abrirModalDoc() {
+        if (modalDoc) {
+            modalDoc.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function cerrarModalDoc() {
+        if (modalDoc) {
+            modalDoc.classList.remove('active');
+            document.body.style.overflow = '';
+            // Reset form
+            if (formCargarDoc) {
+                formCargarDoc.reset();
+                docDropzone.classList.remove('active');
+            }
+        }
+    }
+
     if (btnCargarDoc) {
-        btnCargarDoc.addEventListener('click', function(e) {
+        btnCargarDoc.addEventListener('click', abrirModalDoc);
+    }
+
+    if (btnCerrarModalDoc) {
+        btnCerrarModalDoc.addEventListener('click', cerrarModalDoc);
+    }
+
+    // Cerrar modal al hacer click fuera
+    if (modalDoc) {
+        modalDoc.addEventListener('click', function(e) {
+            if (e.target === modalDoc) {
+                cerrarModalDoc();
+            }
+        });
+    }
+
+    // Cerrar con Escape (para modal documento)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modalDoc && modalDoc.classList.contains('active')) {
+            cerrarModalDoc();
+        }
+    });
+
+    // ---------- Drag & Drop para documento ----------
+    if (docDropzone && docArchivoInput) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            docDropzone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
             e.preventDefault();
-            // Aquí se implementaría la subida de archivos
-            alert('Funcionalidad de carga de documentos - Implementar con dropzone o input file');
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            docDropzone.addEventListener(eventName, () => {
+                docDropzone.classList.add('active');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            docDropzone.addEventListener(eventName, () => {
+                docDropzone.classList.remove('active');
+            });
+        });
+
+        docDropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            docArchivoInput.files = files;
+            handleFileSelect({ target: { files: files } });
+        });
+
+        docDropzone.addEventListener('click', () => {
+            docArchivoInput.click();
+        });
+
+        docArchivoInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                const file = files[0];
+                const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                const maxSize = 5 * 1024 * 1024; // 5MB
+
+                // Validar tipo
+                if (!validTypes.includes(file.type)) {
+                    alert('Solo se permiten archivos JPG, PNG o PDF');
+                    docArchivoInput.value = '';
+                    return;
+                }
+
+                // Validar tamaño
+                if (file.size > maxSize) {
+                    alert('El archivo no puede ser mayor a 5MB');
+                    docArchivoInput.value = '';
+                    return;
+                }
+
+                // Mostrar nombre del archivo
+                const fileName = file.name;
+                const fileInfo = docDropzone.querySelector('p:first-of-type');
+                if (fileInfo) {
+                    fileInfo.textContent = `Archivo: ${fileName}`;
+                }
+            }
+        }
+    }
+
+    // ---------- Validación y envío del formulario de documento ----------
+    if (formCargarDoc) {
+        formCargarDoc.addEventListener('submit', function(e) {
+            let valido = true;
+
+            // Validar tipo
+            const tipoSelect = document.getElementById('doc-tipo');
+            if (!tipoSelect || !tipoSelect.value) {
+                valido = false;
+                if (tipoSelect) tipoSelect.classList.add('error-input');
+            } else {
+                if (tipoSelect) tipoSelect.classList.remove('error-input');
+            }
+
+            // Validar archivo
+            if (!docArchivoInput || !docArchivoInput.files.length) {
+                valido = false;
+                if (docDropzone) {
+                    const error = document.createElement('p');
+                    error.className = 'error';
+                    error.textContent = 'Debe seleccionar un archivo';
+                    if (!docDropzone.querySelector('.error')) {
+                        docDropzone.appendChild(error);
+                    }
+                }
+            } else {
+                const errorMsg = docDropzone?.querySelector('.error');
+                if (errorMsg) errorMsg.remove();
+            }
+
+            if (!valido) {
+                e.preventDefault();
+                return;
+            }
+
+            // Mostrar loading state
+            const btnSubmit = formCargarDoc.querySelector('button[type="submit"]');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = 'Cargando...';
+            }
         });
     }
 

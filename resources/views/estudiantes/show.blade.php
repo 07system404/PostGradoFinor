@@ -251,6 +251,57 @@
     </div>
 </div>
 
+<!-- Modal Cargar Documento -->
+<div class="modal-overlay" id="modal-cargar-documento">
+    <div class="modal-container" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>Cargar Nuevo Documento</h3>
+            <button type="button" class="modal-close" id="cerrar-modal-doc">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <form id="form-cargar-documento" action="{{ route('documentos.store', $estudiante->id) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="modal-body">
+                <div class="form-row full" style="margin-bottom: 16px;">
+                    <div class="form-group">
+                        <label for="doc-tipo">Tipo de Documento <span style="color: var(--danger);">*</span></label>
+                        <select id="doc-tipo" name="tipo" required>
+                            <option value="">Seleccione un tipo...</option>
+                            <option value="Grado de Bachiller">Grado de Bachiller</option>
+                            <option value="Certificado de Idiomas">Certificado de Idiomas</option>
+                            <option value="Copia de DNI / Pasaporte">Copia de DNI / Pasaporte</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row full" style="margin-bottom: 16px;">
+                    <div class="form-group">
+                        <label for="doc-archivo">Archivo (PNG, JPG, PDF) <span style="color: var(--danger);">*</span></label>
+                        <div class="doc-dropzone" id="doc-dropzone">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--gray-400);">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <p style="margin: 8px 0; font-size: 14px; color: var(--gray-700); font-weight: 500;">Arrastra el archivo aquí</p>
+                            <p style="margin: 0; font-size: 12px; color: var(--gray-400);">o haz clic para seleccionar</p>
+                        </div>
+                        <input type="file" id="doc-archivo" name="archivo" accept=".jpg,.jpeg,.png,.pdf" style="display: none;" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancelar" id="cancelar-modal-doc">Cancelar</button>
+                <button type="submit" class="btn-completar">Cargar Documento</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Modal Nueva Inscripción -->
 <div class="modal-overlay" id="modal-nueva-inscripcion">
     <div class="modal-container">
