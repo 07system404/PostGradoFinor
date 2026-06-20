@@ -202,8 +202,8 @@ class CursoController extends Controller
         $programa->update(['activo' => $nuevoEstado]);
 
         $mensaje = $nuevoEstado
-            ? "✅ El programa \"{$programa->nombre}\" fue activado correctamente."
-            : "⛔ El programa \"{$programa->nombre}\" fue desactivado correctamente.";
+            ? "Programa activado correctamente."
+            : "Programa desactivado correctamente.";
 
         return redirect()->route('programas.index')->with('success', $mensaje);
     }

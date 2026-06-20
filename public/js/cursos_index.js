@@ -93,11 +93,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }, index * 80);
     });
 
-    // ---------- Confirmar inactivación (delegación, funciona tras AJAX) ----------
+    // ---------- Confirmar activar/desactivar (delegación, funciona tras AJAX) ----------
     document.addEventListener('click', function(e) {
-        const btn = e.target.closest('.btn-inactivar-prog');
-        if (btn && !confirm('¿Está seguro de desactivar este programa? Los estudiantes inscritos no se verán afectados, pero el programa dejará de estar visible como activo.')) {
-            e.preventDefault();
+        const btnInactivar = e.target.closest('.btn-inactivar-prog');
+        const btnActivar = e.target.closest('.btn-icon-activate');
+        
+        if (btnInactivar) {
+            if (!confirm('¿Desactivar este programa?')) {
+                e.preventDefault();
+            }
+        } else if (btnActivar) {
+            if (!confirm('¿Activar este programa?')) {
+                e.preventDefault();
+            }
         }
     });
 

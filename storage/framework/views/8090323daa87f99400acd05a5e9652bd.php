@@ -162,8 +162,7 @@
                     <?php echo csrf_field(); ?>
                     <?php echo method_field('PUT'); ?>
                     <?php if($programa->activo): ?>
-                        <button type="submit" class="btn-icon-action btn-icon-delete btn-inactivar-prog" title="Desactivar programa" 
-                                onclick="return confirm('¿Desactivar el programa <?php echo e($programa->nombre); ?>?')">
+                        <button type="submit" class="btn-icon-action btn-icon-delete btn-inactivar-prog" title="Desactivar programa">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"/>
                                 <line x1="15" y1="9" x2="9" y2="15"/>
@@ -171,8 +170,7 @@
                             </svg>
                         </button>
                     <?php else: ?>
-                        <button type="submit" class="btn-icon-action btn-icon-activate" title="Activar programa"
-                                onclick="return confirm('¿Activar el programa <?php echo e($programa->nombre); ?>?')">
+                        <button type="submit" class="btn-icon-action btn-icon-activate" title="Activar programa">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="20 6 9 17 4 12"/>
                             </svg>
