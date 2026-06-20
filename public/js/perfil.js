@@ -183,12 +183,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const docArchivoInput = document.getElementById('doc-archivo');
     const formCargarDoc = document.getElementById('form-cargar-documento');
 
-    console.log('Modal Documento - btnCargarDoc:', btnCargarDoc);
-    console.log('Modal Documento - modalDoc:', modalDoc);
-    console.log('Modal Documento - btnCerrarModalDoc:', btnCerrarModalDoc);
-    console.log('Modal Documento - docDropzone:', docDropzone);
-    console.log('Modal Documento - formCargarDoc:', formCargarDoc);
-
     function abrirModalDoc() {
         if (modalDoc) {
             modalDoc.classList.add('active');
@@ -211,14 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (btnCargarDoc) {
-        console.log('Agregando event listener al btn-cargar-documento');
-        btnCargarDoc.addEventListener('click', function(e) {
-            console.log('Click en btn-cargar-documento');
-            e.preventDefault();
-            abrirModalDoc();
-        });
-    } else {
-        console.log('btnCargarDoc no encontrado en el DOM');
+        btnCargarDoc.addEventListener('click', abrirModalDoc);
     }
 
     if (btnCerrarModalDoc) {
