@@ -8,6 +8,7 @@ use App\Models\Inscripcion;
 use App\Models\Curso;
 use App\Models\Documento;
 use App\Traits\GeneraPlanDePagos;
+use App\Traits\ManejaBajaReactivacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 class EstudianteController extends Controller
 {
     use GeneraPlanDePagos;
+    use ManejaBajaReactivacion;
 
     /**
      * Listado de estudiantes (como en la imagen 134808)
@@ -263,6 +265,7 @@ class EstudianteController extends Controller
 
     /**
      * Dar de baja un estudiante (marcar como inactivo)
+     * Follow-up older approach — se mantiene por si se usa desde otro lugar.
      */
     public function destroy(Estudiante $estudiante)
     {
@@ -274,6 +277,7 @@ class EstudianteController extends Controller
 
     /**
      * Reactivar un estudiante dado de baja
+     * Follow-up older approach — se mantiene por si se usa desde otro lugar.
      */
     public function reactivate(Estudiante $estudiante)
     {
@@ -281,5 +285,66 @@ class EstudianteController extends Controller
 
         return redirect()->route('estudiantes.index')
             ->with('success', 'El alumno "' . $estudiante->nombre_completo . '" ha sido reactivado correctamente.');
+    }
+
+    // ──────────────────────────────────────────────
+    //  NUEVAS ACCIONES (Contexto 1: Baja completa)
+    // ──────────────────────────────────────────────
+
+    /**
+     * Baja COMPLETA: da de baja al estudiante de TODOS sus cursos activos.
+     * Recorre todas las inscripciones con estado_academico distinto de 'Retirado'
+     * y les aplica la misma lógica de baja (condonar cuotas futuras, marcar Retirado).
+     */
+    public function bajaCompleta(Estudiante $estudiante)
+    {
+        $inscripcionesActivas = $estudiante->inscripciones()
+            ->where('estado_academico', '!=', 'Retirado')
+            ->get();
+
+        if ($inscripcionesActivas->isEmpty()) {
+            return redirect()->route('estudiantes.index')
+                ->with('info', 'El alumno "' . $estudiante->nombre_completo . '" no tiene inscripciones activas para dar de baja.');
+        }
+
+        foreach ($inscripcionesActivas as $inscripcion) {
+            $this->bajarInscripcion($inscripcion);
+        }
+
+        // También marcamos al estudiante como inactivo global (opcional, pero coherente)
+        $estudiante->update(['activo' => false]);
+
+        return redirect()->route('estudiantes.index')
+            ->with('success', 'Se dio de baja a "' . $estudiante->nombre_completo . '" de todos sus cursos (' . $inscripcionesActivas->count() . ' inscripciones afectadas).');
+    }
+
+    /**
+     * Reactivar una inscripción específica (desde el listado general o perfil).
+     * Sirve tanto para el Contexto 1 (baja completa) como Contexto 2 (baja de un curso).
+     */
+    public function reactivarInscripcion(Inscripcion $inscripcion)
+    {
+        if ($inscripcion->estado_academico !== 'Retirado') {
+            return back()->with('error', 'La inscripción no está en estado "Retirado", no se puede reactivar.');
+        }
+
+        // Cargar relaciones faltantes si es necesario
+        $inscripcion->loadMissing('planPago.detalles', 'estudiante');
+
+        $this->procesarReactivacionInscripcion($inscripcion);
+
+        // Si el estudiante estaba marcado como inactivo y ahora tiene al menos una inscripción activa, lo reactivamos
+        $estudiante = $inscripcion->estudiante;
+        if (! $estudiante->activo) {
+            $tieneActiva = $estudiante->inscripciones()
+                ->where('estado_academico', '!=', 'Retirado')
+                ->exists();
+            if ($tieneActiva) {
+                $estudiante->update(['activo' => true]);
+            }
+        }
+
+        return redirect()->back()
+            ->with('success', 'Inscripción reactivada correctamente para "' . $estudiante->nombre_completo . '".');
     }
 }

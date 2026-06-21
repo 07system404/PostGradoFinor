@@ -203,20 +203,123 @@
                                 <circle cx="12" cy="12" r="3"/>
                             </svg>
                         </a>
-                        <a href="{{ route('caja.index', ['buscar' => $estudiante->cedula]) }}" class="btn-accion btn-caja" title="Ver Caja">
+                        <a href="{{ route('caja.index', ['estudiante_id' => $estudiante->id, 'inscripcion_id' => $inscripcion->id]) }}" class="btn-accion btn-caja" title="Ver Caja">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                             </svg>
                         </a>
-                        <button type="button" class="btn-accion btn-baja btn-desinscribir"
-                                title="Quitar de este curso"
-                                data-url="{{ route('programas.desinscribir', [$programa->id, $inscripcion->id]) }}"
-                                data-nombre="{{ $estudiante->nombre_completo }}">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <line x1="8" y1="12" x2="16" y2="12"/>
-                            </svg>
-                        </button>
+
+                        @if($inscripcion->estado_academico === 'Retirado')
+                        {{-- BOTÓN REACTIVAR --}}
+                        <form action="{{ route('programas.reactivar', [$programa->id, $inscripcion->id]) }}" method="POST" class="form-reactivar-inline" style="display:inline;">
+                            @csrf
+                            <button type="button" class="btn-accion btn-reactivar btn-reactivar-curso" title="Reactivar en este curso"
+                                    data-nombre="{{ $estudiante->nombre_completo }}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10"/>
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                                </svg>
+                            </button>
+                        </form>
+                        @else
+                        {{-- BOTÓN DAR DE BAJA (de este curso) --}}
+                        <form action="{{ route('programas.baja', [$programa->id, $inscripcion->id]) }}" method="POST" class="form-baja-curso" style="display:inline;">
+                            @csrf
+                            <button type="button" class="btn-accion btn-baja btn-baja-curso" title="Retirar de este curso"
+                                    data-nombre="{{ $estudiante->nombre_completo }}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="8" y1="12" x2="16" y2="12"/>
+                                </svg>
+                            </button>
+                        </form>
+                        @endif
+
+                        {{-- BOTÓN CAMBIAR TIPO / CONTINUAR --}}
+                        @php
+                            $puedeLimitar = \App\Models\Inscripcion::TIPO_ORDER[$inscripcion->tipo_inscripcion] > 1;
+                            $puedeContinuar = \App\Models\Inscripcion::TIPO_ORDER[$inscripcion->tipo_inscripcion] < 3
+                                && $inscripcion->estado_academico !== 'Retirado';
+                        @endphp
+                        @if($puedeLimitar || $puedeContinuar)
+                        <div class="dropdown-accion" style="position:relative;display:inline-block;">
+                            <button type="button" class="btn-accion btn-tipo-inscripcion" title="Cambiar tipo de inscripción"
+                                    data-inscripcion-id="{{ $inscripcion->id }}"
+                                    data-estudiante-nombre="{{ $estudiante->nombre_completo }}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <path d="M12 20h9"/>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu-tipo" id="dropdown-tipo-{{ $inscripcion->id }}" style="display:none;position:fixed;z-index:1000;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);min-width:200px;padding:6px 0;">
+                                @if($puedeLimitar)
+                                    @if($inscripcion->tipo_inscripcion === 'Maestría')
+                                    <form action="{{ route('programas.cambiar.tipo', [$programa->id, $inscripcion->id]) }}" method="POST" class="form-cambiar-tipo">
+                                        @csrf
+                                        <input type="hidden" name="nuevo_tipo" value="Diplomado">
+                                        <button type="button" class="dropdown-item btn-limitar" style="display:block;width:100%;text-align:left;padding:8px 14px;border:none;background:none;cursor:pointer;font-size:13px;"
+                                                data-nombre="{{ $estudiante->nombre_completo }}" data-accion="limitar-diplomado">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;vertical-align:middle;">
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                            Solo Diplomado
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('programas.cambiar.tipo', [$programa->id, $inscripcion->id]) }}" method="POST" class="form-cambiar-tipo">
+                                        @csrf
+                                        <input type="hidden" name="nuevo_tipo" value="Especialidad">
+                                        <button type="button" class="dropdown-item btn-limitar" style="display:block;width:100%;text-align:left;padding:8px 14px;border:none;background:none;cursor:pointer;font-size:13px;"
+                                                data-nombre="{{ $estudiante->nombre_completo }}" data-accion="limitar-especialidad">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;vertical-align:middle;">
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                            Solo Especialidad
+                                        </button>
+                                    </form>
+                                    @elseif($inscripcion->tipo_inscripcion === 'Especialidad')
+                                    <form action="{{ route('programas.cambiar.tipo', [$programa->id, $inscripcion->id]) }}" method="POST" class="form-cambiar-tipo">
+                                        @csrf
+                                        <input type="hidden" name="nuevo_tipo" value="Diplomado">
+                                        <button type="button" class="dropdown-item btn-limitar" style="display:block;width:100%;text-align:left;padding:8px 14px;border:none;background:none;cursor:pointer;font-size:13px;"
+                                                data-nombre="{{ $estudiante->nombre_completo }}" data-accion="limitar-diplomado">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;vertical-align:middle;">
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                            Solo Diplomado
+                                        </button>
+                                    </form>
+                                    @endif
+                                @endif
+                                @if($puedeContinuar)
+                                    @if($inscripcion->tipo_inscripcion === 'Diplomado')
+                                    <form action="{{ route('programas.continuar.fase', [$programa->id, $inscripcion->id]) }}" method="POST" class="form-continuar-fase">
+                                        @csrf
+                                        <button type="button" class="dropdown-item btn-continuar" style="display:block;width:100%;text-align:left;padding:8px 14px;border:none;background:none;cursor:pointer;font-size:13px;"
+                                                data-nombre="{{ $estudiante->nombre_completo }}" data-accion="continuar-especialidad">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;vertical-align:middle;">
+                                                <polyline points="23 4 23 10 17 10"/>
+                                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                                            </svg>
+                                            Continuar a Especialidad
+                                        </button>
+                                    </form>
+                                    @elseif($inscripcion->tipo_inscripcion === 'Especialidad')
+                                    <form action="{{ route('programas.continuar.fase', [$programa->id, $inscripcion->id]) }}" method="POST" class="form-continuar-fase">
+                                        @csrf
+                                        <button type="button" class="dropdown-item btn-continuar" style="display:block;width:100%;text-align:left;padding:8px 14px;border:none;background:none;cursor:pointer;font-size:13px;"
+                                                data-nombre="{{ $estudiante->nombre_completo }}" data-accion="continuar-maestria">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;vertical-align:middle;">
+                                                <polyline points="23 4 23 10 17 10"/>
+                                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                                            </svg>
+                                            Continuar a Maestría
+                                        </button>
+                                    </form>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </td>
             </tr>
@@ -239,18 +342,12 @@
 {{-- Modal reutilizable en modo "programa fijo": se busca y elige al alumno --}}
 <x-form-inscripcion-programa :programa-id="$programa->id" />
 
-{{-- Formulario oculto que ejecuta la desinscripción (action se asigna por JS) --}}
-<form id="form-desinscribir" method="POST" style="display:none;">
-    @csrf
-    @method('DELETE')
-</form>
-
-{{-- Modal de confirmación de desinscripción (reutiliza estilos fi-modal) --}}
-<div class="fi-modal-overlay" id="modal-desinscribir">
-    <div class="fi-modal-box" style="max-width: 440px;">
-        <div class="fi-modal-header">
-            <h3 class="fi-modal-title">Desinscribir Estudiante</h3>
-            <button type="button" class="fi-modal-close" id="desinsc-cerrar">
+{{-- MODAL DE CONFIRMACIÓN GENÉRICO (baja/reactivar/limitar/continuar) --}}
+<div class="fi-modal-overlay" id="modal-accion-inscripcion">
+    <div class="fi-modal-box" style="max-width: 480px;">
+        <div class="fi-modal-header" id="mai-header">
+            <h3 class="fi-modal-title" id="mai-titulo">Confirmar Acción</h3>
+            <button type="button" class="fi-modal-close" id="mai-cerrar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -258,16 +355,12 @@
             </button>
         </div>
         <div class="fi-modal-body">
-            <p id="desinsc-texto" style="font-size:14px;color:#374151;margin:0 0 8px;"></p>
-            <p style="font-size:13px;color:#6b7280;margin:0;">
-                Solo se quita al alumno de <strong>este programa</strong>; sus datos personales
-                y sus inscripciones en otros programas no se modifican.
-            </p>
+            <p id="mai-texto" style="font-size:14px;color:#374151;margin:0 0 8px;"></p>
+            <p id="mai-subtexto" style="font-size:13px;color:#6b7280;margin:0;"></p>
         </div>
         <div class="fi-modal-footer">
-            <button type="button" class="fi-btn-cancelar" id="desinsc-cancelar">Cancelar</button>
-            <button type="button" class="fi-btn-guardar" id="desinsc-confirmar"
-                    style="background:#dc2626;">Sí, desinscribir</button>
+            <button type="button" class="fi-btn-cancelar" id="mai-cancelar">Cancelar</button>
+            <button type="button" class="fi-btn-guardar" id="mai-confirmar" style="background:#dc2626;">Confirmar</button>
         </div>
     </div>
 </div>
@@ -276,37 +369,178 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var modal = document.getElementById('modal-desinscribir');
-    var form = document.getElementById('form-desinscribir');
-    var texto = document.getElementById('desinsc-texto');
-    var btnConfirmar = document.getElementById('desinsc-confirmar');
-    var btnCancelar = document.getElementById('desinsc-cancelar');
-    var btnCerrar = document.getElementById('desinsc-cerrar');
+    // ── Modal Confirmación Genérico ──
+    var maiModal = document.getElementById('modal-accion-inscripcion');
+    var maiTitulo = document.getElementById('mai-titulo');
+    var maiTexto = document.getElementById('mai-texto');
+    var maiSubtexto = document.getElementById('mai-subtexto');
+    var maiConfirmar = document.getElementById('mai-confirmar');
+    var maiCancelar = document.getElementById('mai-cancelar');
+    var maiCerrar = document.getElementById('mai-cerrar');
+    var maiForm = null;
 
-    function abrir() { modal.classList.add('active'); document.body.style.overflow = 'hidden'; }
-    function cerrar() { modal.classList.remove('active'); document.body.style.overflow = ''; }
+    function maiAbrir(titulo, texto, subtexto, color, btnText) {
+        maiTitulo.textContent = titulo;
+        maiTexto.textContent = texto;
+        maiSubtexto.textContent = subtexto || '';
+        maiConfirmar.style.background = color || '#dc2626';
+        maiConfirmar.textContent = btnText || 'Confirmar';
+        maiModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 
-    document.querySelectorAll('.btn-desinscribir').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var url = this.getAttribute('data-url');
+    function maiCerrarFn() {
+        maiModal.classList.remove('active');
+        document.body.style.overflow = '';
+        maiForm = null;
+    }
+
+    if (maiConfirmar) {
+        maiConfirmar.addEventListener('click', function() {
+            if (maiForm) { maiForm.submit(); }
+            maiCerrarFn();
+        });
+    }
+    if (maiCancelar) maiCancelar.addEventListener('click', maiCerrarFn);
+    if (maiCerrar) maiCerrar.addEventListener('click', maiCerrarFn);
+    if (maiModal) maiModal.addEventListener('click', function(e) { if (e.target === maiModal) maiCerrarFn(); });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && maiModal && maiModal.classList.contains('active')) maiCerrarFn();
+    });
+
+    // ── Botón Baja (de este curso) ──
+    document.querySelectorAll('.btn-baja-curso').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
             var nombre = this.getAttribute('data-nombre') || 'este estudiante';
-            form.setAttribute('action', url);
-            texto.textContent = '¿Está seguro que desea desinscribir a "' + nombre + '" de este programa?';
-            abrir();
+            maiForm = this.closest('form');
+            maiAbrir(
+                'Retirar del Programa',
+                '¿Está seguro que desea retirar a "' + nombre + '" de este programa?',
+                'Se condonarán las cuotas futuras y la inscripción quedará como "Retirado". Las cuotas vencidas y pagadas no se modifican. Esta acción es reversible (puede reactivar después).',
+                '#dc2626',
+                'Sí, retirar'
+            );
         });
     });
 
-    if (btnConfirmar) btnConfirmar.addEventListener('click', function() {
-        btnConfirmar.disabled = true;
-        btnConfirmar.textContent = 'Desinscribiendo...';
-        form.submit();
+    // ── Botón Reactivar (de este curso) ──
+    document.querySelectorAll('.btn-reactivar-curso').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var nombre = this.getAttribute('data-nombre') || 'este estudiante';
+            maiForm = this.closest('form');
+            maiAbrir(
+                'Reactivar Inscripción',
+                '¿Desea reactivar la inscripción de "' + nombre + '" en este programa?',
+                'Las cuotas condonadas volverán a "Pendiente" con nuevas fechas de vencimiento desde hoy. Las cuotas pagadas se mantienen intactas.',
+                '#059669',
+                'Sí, reactivar'
+            );
+        });
     });
-    if (btnCancelar) btnCancelar.addEventListener('click', cerrar);
-    if (btnCerrar) btnCerrar.addEventListener('click', cerrar);
-    if (modal) modal.addEventListener('click', function(e) { if (e.target === modal) cerrar(); });
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal.classList.contains('active')) cerrar();
+
+    // ── Dropdown tipo inscripción (position:fixed con cálculo JS) ──
+    function posicionarDropdown(btn, dropdown) {
+        var rect = btn.getBoundingClientRect();
+        var dropdownWidth = 210;
+        var left = rect.right - dropdownWidth;
+        if (left < 10) left = 10;
+        var top = rect.bottom + 4;
+        // Si no cabe abajo, mostrar arriba
+        if (top + 250 > window.innerHeight) {
+            top = rect.top - 250;
+            if (top < 10) top = 10;
+        }
+        dropdown.style.left = left + 'px';
+        dropdown.style.top = top + 'px';
+    }
+
+    document.querySelectorAll('.btn-tipo-inscripcion').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var inscId = this.getAttribute('data-inscripcion-id');
+            var dropdown = document.getElementById('dropdown-tipo-' + inscId);
+            if (dropdown) {
+                var visible = dropdown.style.display === 'block';
+                // Cerrar todos los demás dropdowns
+                document.querySelectorAll('.dropdown-menu-tipo').forEach(function(d) { d.style.display = 'none'; d.style.left = ''; d.style.top = ''; });
+                if (!visible) {
+                    posicionarDropdown(this, dropdown);
+                    dropdown.style.display = 'block';
+                }
+            }
+        });
     });
+
+    // Cerrar dropdowns al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.btn-tipo-inscripcion') && !e.target.closest('.dropdown-menu-tipo')) {
+            document.querySelectorAll('.dropdown-menu-tipo').forEach(function(d) { d.style.display = 'none'; d.style.left = ''; d.style.top = ''; });
+        }
+    });
+
+    // Reposicionar al hacer scroll (opcional, para mantener posición correcta)
+    var scrollTimer;
+    window.addEventListener('scroll', function() {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(function() {
+            document.querySelectorAll('.dropdown-menu-tipo').forEach(function(d) {
+                if (d.style.display === 'block') {
+                    // Buscar el botón asociado por el ID
+                    var id = d.id.replace('dropdown-tipo-', '');
+                    var btn = document.querySelector('.btn-tipo-inscripcion[data-inscripcion-id="' + id + '"]');
+                    if (btn) posicionarDropdown(btn, d);
+                }
+            });
+        }, 50);
+    });
+
+    // Al seleccionar una opción (click en .btn-limitar o .btn-continuar), cerrar dropdown
+    document.querySelectorAll('.btn-limitar, .btn-continuar').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.dropdown-menu-tipo').forEach(function(d) { d.style.display = 'none'; d.style.left = ''; d.style.top = ''; });
+        });
+    });
+
+    // ── Botones Limitar (Solo Diplomado / Solo Especialidad) ──
+    document.querySelectorAll('.btn-limitar').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var nombre = this.getAttribute('data-nombre') || 'este estudiante';
+            var accion = this.getAttribute('data-accion');
+            var tipoLabel = accion === 'limitar-diplomado' ? 'Solo Diplomado' : 'Solo Especialidad';
+            maiForm = this.closest('form');
+            maiAbrir(
+                'Limitar a ' + tipoLabel,
+                '¿Está seguro de limitar la inscripción de "' + nombre + '" a "' + tipoLabel + '"?',
+                'Se condonarán todas las cuotas de fases posteriores. Las cuotas ya pagadas se mantienen intactas. Esta acción es reversible con "Continuar a la siguiente fase".',
+                '#d97706',
+                'Sí, ' + (accion === 'limitar-diplomado' ? 'limitar a Diplomado' : 'limitar a Especialidad')
+            );
+        });
+    });
+
+    // ── Botones Continuar ──
+    document.querySelectorAll('.btn-continuar').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var nombre = this.getAttribute('data-nombre') || 'este estudiante';
+            var accion = this.getAttribute('data-accion');
+            var tipoLabel = accion === 'continuar-especialidad' ? 'Especialidad' : 'Maestría';
+            maiForm = this.closest('form');
+            maiAbrir(
+                'Continuar a ' + tipoLabel,
+                '¿Desea que "' + nombre + '" continúe a "' + tipoLabel + '"?',
+                'Las cuotas condonadas de la nueva fase volverán a "Pendiente" con fechas de vencimiento recalculadas desde hoy.',
+                '#1B4FD8',
+                'Sí, continuar'
+            );
+        });
+    });
+
 });
 </script>
 

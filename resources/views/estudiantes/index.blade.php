@@ -91,12 +91,24 @@
                     @php
                         $inscripcion = $estudiante->inscripciones->first();
                         $programaPrincipal = $inscripcion ? $inscripcion->curso->nombre : 'Sin inscripción';
-                        $estadoAcademico = $inscripcion ? $inscripcion->estado_academico : 'Sin Inscripción';
+
+                        // CORRECCIÓN 1: estado calculado sobre TODAS las inscripciones
+                        $todasRetiradas = $estudiante->inscripciones->every(fn($i) => $i->estado_academico === 'Retirado');
+                        $tieneActiva = $estudiante->inscripciones->contains(fn($i) => $i->estado_academico !== 'Retirado');
+                        if ($estudiante->inscripciones->isEmpty()) {
+                            $estadoAcademico = 'Sin Inscripción';
+                        } elseif ($todasRetiradas) {
+                            $estadoAcademico = 'Retirado';
+                        } elseif ($tieneActiva) {
+                            $estadoAcademico = 'Activo';
+                        } else {
+                            $estadoAcademico = 'Pendiente';
+                        }
 
                         $claseEstado = match($estadoAcademico) {
                             'Activo' => 'estado-activo',
                             'Pendiente' => 'estado-pendiente',
-                            'Mora' => 'estado-mora',
+                            'Retirado' => 'estado-retirado',
                             'Congelado' => 'estado-congelado',
                             'Sin Inscripción' => 'estado-pendiente',
                             default => 'estado-pendiente',
@@ -132,9 +144,10 @@
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                                 <circle cx="12" cy="12" r="10"/>
                             </svg>
-                            @elseif($estadoAcademico == 'Mora')
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                            @elseif($estadoAcademico == 'Retirado')
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
                             </svg>
                             @endif
                             {{ strtoupper($estadoAcademico) }}
@@ -172,32 +185,33 @@
                                     <circle cx="12" cy="12" r="3"/>
                                 </svg>
                             </a>
-                            <a href="{{ route('caja.index', ['buscar' => $estudiante->cedula]) }}" class="btn-accion btn-caja" title="Ver Caja">
+                            <a href="{{ route('caja.index', ['estudiante_id' => $estudiante->id, 'inscripcion_id' => $inscripcion?->id]) }}" class="btn-accion btn-caja" title="Ver Caja">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                                 </svg>
                             </a>
-                            @if($estudiante->activo)
-                            <form action="{{ route('estudiantes.destroy', $estudiante->id) }}" method="POST" class="form-baja-estudiante form-baja-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" class="btn-accion btn-baja" title="Dar de baja" data-nombre="{{ $estudiante->nombre_completo }}">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <line x1="8" y1="12" x2="16" y2="12"/>
-                                    </svg>
-                                </button>
-                            </form>
-                            @else
-                            <form action="{{ route('estudiantes.reactivate', $estudiante->id) }}" method="POST" class="form-baja-inline">
-                                @csrf
-                                <button type="button" class="btn-accion btn-reactivar" title="Reactivar" data-nombre="{{ $estudiante->nombre_completo }}">
+                            @if($estudiante->inscripciones->isNotEmpty())
+                                @if($todasRetiradas)
+                                {{-- BOTÓN REACTIVAR (todas las inscripciones están Retiradas) --}}
+                                <button type="button" class="btn-accion btn-reactivar btn-reactivar-multiple" title="Reactivar"
+                                        data-nombre="{{ $estudiante->nombre_completo }}"
+                                        data-reactivar-url="{{ route('inscripciones.reactivar', $estudiante->inscripciones->first()->id) }}">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <polyline points="23 4 23 10 17 10"/>
                                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                                     </svg>
                                 </button>
-                            </form>
+                                @else
+                                {{-- BOTÓN DAR DE BAJA (al menos una inscripción activa) --}}
+                                <button type="button" class="btn-accion btn-baja" title="Dar de baja de todos los cursos"
+                                        data-nombre="{{ $estudiante->nombre_completo }}"
+                                        data-baja-url="{{ route('estudiantes.baja.completa', $estudiante->id) }}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="8" y1="12" x2="16" y2="12"/>
+                                    </svg>
+                                </button>
+                                @endif
                             @endif
                         </div>
                     </td>
@@ -284,8 +298,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var btnCancelarConfirm = document.getElementById('btn-cancelar-confirm');
     var btnCerrarConfirm = document.getElementById('cerrar-modal-confirm');
     var confirmForm = null;
+    var confirmMethod = null; // 'baja' | 'reactivar'
 
-    function abrirModalConfirm(tipo) {
+    function abrirModalConfirm(tipo, subtexto) {
         if (!modalConfirm) return;
         modalConfirm.classList.remove('modal-confirm-danger', 'modal-confirm-success');
         modalConfirm.classList.add('active');
@@ -295,12 +310,15 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
             confirmTitulo.textContent = 'Dar de Baja';
             btnConfirmar.textContent = 'Si, dar de baja';
-        } else {
+            confirmSubtext.textContent = subtexto || 'Se condonaran las cuotas futuras en todos sus cursos. Las cuotas vencidas y pagadas no se modifican.';
+        } else if (tipo === 'reactivar') {
             modalConfirm.classList.add('modal-confirm-success');
             confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
-            confirmTitulo.textContent = 'Reactivar Alumno';
+            confirmTitulo.textContent = 'Reactivar Inscripción';
             btnConfirmar.textContent = 'Si, reactivar';
+            confirmSubtext.textContent = subtexto || 'Las cuotas condonadas volveran a Pendiente con nuevas fechas de vencimiento.';
         }
+        confirmMethod = tipo;
     }
 
     function cerrarModalConfirm() {
@@ -308,6 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modalConfirm.classList.remove('active');
         document.body.style.overflow = '';
         confirmForm = null;
+        confirmMethod = null;
     }
 
     if (btnCerrarConfirm) btnCerrarConfirm.addEventListener('click', cerrarModalConfirm);
@@ -323,24 +342,61 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    document.querySelectorAll('.btn-baja').forEach(function(btn) {
+    // Botones de baja (usando data-baja-url, sin form)
+    document.querySelectorAll('[data-baja-url]').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             var nombre = this.getAttribute('data-nombre') || 'este alumno';
-            confirmForm = this.closest('form');
-            confirmText.textContent = 'Esta seguro que desea dar de baja a "' + nombre + '"?';
-            confirmSubtext.textContent = 'El alumno quedara como inactivo en la lista.';
-            abrirModalConfirm('baja');
+            var url = this.getAttribute('data-baja-url');
+            // Crear form temporal
+            var f = document.createElement('form');
+            f.method = 'POST'; f.action = url; f.style.display = 'none';
+            var t = document.createElement('input');
+            t.type = 'hidden'; t.name = '_token'; t.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            f.appendChild(t);
+            document.body.appendChild(f);
+            confirmForm = f;
+            confirmText.textContent = 'Esta seguro que desea dar de baja a "' + nombre + '" de TODOS sus cursos?';
+            abrirModalConfirm('baja', 'Se condonaran las cuotas futuras y el alumno quedara como Retirado en todas sus inscripciones activas.');
         });
     });
 
-    document.querySelectorAll('.btn-reactivar').forEach(function(btn) {
+    // Botones de reactivar (inscripciones individuales, sin form)
+    document.querySelectorAll('[data-reactivar-url]').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             var nombre = this.getAttribute('data-nombre') || 'este alumno';
-            confirmForm = this.closest('form');
+            var url = this.getAttribute('data-reactivar-url');
+            var f = document.createElement('form');
+            f.method = 'POST'; f.action = url; f.style.display = 'none';
+            var t = document.createElement('input');
+            t.type = 'hidden'; t.name = '_token'; t.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            f.appendChild(t);
+            document.body.appendChild(f);
+            confirmForm = f;
+            confirmText.textContent = 'Desea reactivar la inscripcion de "' + nombre + '"?';
+            abrirModalConfirm('reactivar', 'Las cuotas condonadas volveran a Pendiente con fechas de vencimiento recalculadas desde hoy.');
+        });
+    });
+
+    // Botones de baja antigua (form-baja-estudiante) - legacy
+    document.querySelectorAll('.form-baja-estudiante .btn-baja').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var nombre = btn.getAttribute('data-nombre') || 'este alumno';
+            confirmForm = btn.closest('form');
+            confirmText.textContent = 'Esta seguro que desea dar de baja a "' + nombre + '"?';
+            abrirModalConfirm('baja', 'El alumno quedara como inactivo en la lista.');
+        });
+    });
+
+    // Botones de reactivar legacy (form-baja-inline)
+    document.querySelectorAll('.form-baja-inline .btn-reactivar').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var nombre = btn.getAttribute('data-nombre') || 'este alumno';
+            confirmForm = btn.closest('form');
             confirmText.textContent = 'Desea reactivar al alumno "' + nombre + '"?';
-            confirmSubtext.textContent = 'El alumno volvera a aparecer como activo.';
             abrirModalConfirm('reactivar');
         });
     });

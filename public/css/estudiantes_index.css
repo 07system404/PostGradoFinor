@@ -351,6 +351,11 @@ table.data-table tbody td {
     color: var(--gray-600);
 }
 
+.estado-retirado {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
 /* Documentación */
 .doc-status {
     margin-bottom: 8px;

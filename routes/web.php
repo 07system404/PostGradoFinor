@@ -39,7 +39,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/{estudiante}/inscribir', [EstudianteController::class, 'inscribirCurso'])->name('inscribir');
     Route::delete('/{estudiante}', [EstudianteController::class, 'destroy'])->name('destroy');
     Route::post('/{estudiante}/reactivar', [EstudianteController::class, 'reactivate'])->name('reactivate');
+    Route::post('/{estudiante}/baja-completa', [EstudianteController::class, 'bajaCompleta'])->name('baja.completa');
 });
+
+    //  Reactivar inscripción individual (desde listado general o perfil)
+    Route::post('inscripciones/{inscripcion}/reactivar', [EstudianteController::class, 'reactivarInscripcion'])->name('inscripciones.reactivar');
     //  Inscripciones (desde detalle) 
     Route::get('estudiantes/{estudiante}/inscripciones/create', [InscripcionController::class, 'create'])
         ->name('inscripciones.create');
@@ -60,15 +64,18 @@ Route::middleware(['auth'])->group(function () {
     Route::put('programas/{programa}/inactivar', [CursoController::class, 'toggleActivo'])->name('programas.inactivar');
     Route::post('programas/{programa}/inscribir-estudiante', [CursoController::class, 'inscribirEstudiante'])->name('programas.inscribir');
     Route::delete('programas/{programa}/desinscribir/{inscripcion}', [CursoController::class, 'desinscribirEstudiante'])->name('programas.desinscribir');
+    Route::post('programas/{programa}/baja/{inscripcion}', [CursoController::class, 'bajarDelCurso'])->name('programas.baja');
+    Route::post('programas/{programa}/reactivar/{inscripcion}', [CursoController::class, 'reactivarDelCurso'])->name('programas.reactivar');
+    Route::post('programas/{programa}/cambiar-tipo/{inscripcion}', [CursoController::class, 'cambiarTipoInscripcion'])->name('programas.cambiar.tipo');
+    Route::post('programas/{programa}/continuar-fase/{inscripcion}', [CursoController::class, 'continuarFase'])->name('programas.continuar.fase');
 
     //  Reportes (Solo Admin) 
     Route::middleware('role:admin')->group(function () {
         Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes');
-        Route::get('/reportes/estudiantes', [EstudianteController::class, 'exportar'])->name('reportes.estudiantes');
-        Route::get('/reportes/programas', [CursoController::class, 'exportar'])->name('reportes.programas');
         Route::get('/reportes/cursos/{curso}/exportar', [ReporteController::class, 'exportarCursos'])->name('reportes.cursos.exportar');
         Route::get('/reportes/exportar-planilla/{curso}', [ReporteController::class, 'exportarCursos'])->name('reportes.exportar.planilla');
         Route::get('/reportes/pagos-rango', [ReporteController::class, 'exportarPagosRango'])->name('reportes.pagos.rango');
+        Route::get('/reportes/cuentas-por-cobrar', [ReporteController::class, 'cuentasPorCobrar'])->name('reportes.cuentas.cobrar');
 
         //  Respaldo / Backup 
         Route::prefix('backup')->name('backup.')->group(function () {

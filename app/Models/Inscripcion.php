@@ -8,6 +8,13 @@ class Inscripcion extends Model
 {
     protected $table = 'inscripciones';
 
+    // Orden de tipos de inscripción para comparación (mayor = más fases)
+    const TIPO_ORDER = [
+        'Diplomado' => 1,
+        'Especialidad' => 2,
+        'Maestría' => 3,
+    ];
+
     protected $fillable = [
         'estudiante_id',
         'curso_id',

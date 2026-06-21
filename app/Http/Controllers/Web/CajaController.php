@@ -74,6 +74,7 @@ class CajaController extends Controller
         $inscripcionSeleccionada = null;
         $planPago = null;
         $detalles = collect();
+        $montoProgramadoActivo = 0;
         $mostrarModalInscripcion = false;
 
         if ($request->filled('estudiante_id')) {
@@ -108,7 +109,13 @@ class CajaController extends Controller
             if ($inscripcionSeleccionada) {
                 $planPago = $inscripcionSeleccionada->planPago;
                 if ($planPago) {
-                    $detalles = $planPago->detalles()->orderBy('nro_cuota')->get();
+                    $detalles = $planPago->detalles()
+                        ->where('estado', '!=', 'Condonado')
+                        ->orderBy('nro_cuota')
+                        ->get();
+
+                    // Monto total activo (excluye cuotas condonadas)
+                    $montoProgramadoActivo = $detalles->sum('monto_programado');
                 }
             }
         }
@@ -132,6 +139,7 @@ class CajaController extends Controller
             'inscripcionSeleccionada',
             'planPago',
             'detalles',
+            'montoProgramadoActivo',
             'totalPagadoGlobal',
             'totalDeudaGlobal',
             'urlPagoRapido',
@@ -214,17 +222,20 @@ class CajaController extends Controller
             return response()->json([]);
         }
 
-        $detalles = $planPago->detalles->map(fn($d) => [
-            'id' => $d->id,
-            'nro_cuota' => $d->nro_cuota,
-            'concepto' => $d->concepto,
-            'fase' => $d->fase,
-            'monto_programado' => $d->monto_programado,
-            'monto_pagado' => $d->monto_pagado,
-            'saldo_cuota' => $d->saldo_cuota,
-            'estado' => $d->estado,
-            'esta_pagado' => in_array($d->estado, ['Pagado', 'Condonado']) || $d->saldo_cuota <= 0,
-        ]);
+        $detalles = $planPago->detalles
+            ->where('estado', '!=', 'Condonado')
+            ->values()
+            ->map(fn($d) => [
+                'id' => $d->id,
+                'nro_cuota' => $d->nro_cuota,
+                'concepto' => $d->concepto,
+                'fase' => $d->fase,
+                'monto_programado' => $d->monto_programado,
+                'monto_pagado' => $d->monto_pagado,
+                'saldo_cuota' => $d->saldo_cuota,
+                'estado' => $d->estado,
+                'esta_pagado' => in_array($d->estado, ['Pagado', 'Condonado']) || $d->saldo_cuota <= 0,
+            ]);
 
         $matricula = $detalles->first(fn($d) =>
             ($d['fase'] ?? '') === 'Matrícula'

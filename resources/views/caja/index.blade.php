@@ -136,7 +136,7 @@
             <div class="resumen-cards">
                 <div class="resumen-card">
                     <div class="resumen-label">Monto Total Programa</div>
-                    <div class="resumen-monto">Bs {{ number_format($planPago->monto_total_programado, 2) }}</div>
+                    <div class="resumen-monto">Bs {{ number_format($montoProgramadoActivo ?? $planPago->monto_total_programado, 2) }}</div>
                     <div class="resumen-nota">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -151,8 +151,9 @@
                     <div class="resumen-monto">Bs {{ number_format($planPago->monto_total_pagado, 2) }}</div>
                     <div class="progress-bar-container">
                         @php
-                            $porcentaje = $planPago->monto_total_programado > 0 
-                                ? ($planPago->monto_total_pagado / $planPago->monto_total_programado) * 100 
+                            $baseProgramado = $montoProgramadoActivo ?? $planPago->monto_total_programado;
+                            $porcentaje = $baseProgramado > 0 
+                                ? ($planPago->monto_total_pagado / $baseProgramado) * 100 
                                 : 0;
                         @endphp
                         <div class="progress-bar-fill" style="width: {{ min($porcentaje, 100) }}%;"></div>
@@ -229,6 +230,7 @@
                                     'Vencido' => 'estado-cuota-vencido',
                                     'Pendiente' => $isVencido ? 'estado-cuota-vencido' : 'estado-cuota-pendiente',
                                     'Parcial' => 'estado-cuota-pendiente',
+                                    'Condonado' => 'estado-cuota-pagado',
                                     default => 'estado-cuota-programado',
                                 };
 
@@ -237,7 +239,16 @@
                                     'Vencido' => 'Vencido',
                                     'Pendiente' => $isVencido ? 'Vencido' : 'Pendiente',
                                     'Parcial' => 'Pendiente',
+                                    'Condonado' => 'Condonado',
                                     default => 'Programado',
+                                };
+
+                                $iconoEstado = match($textoEstado) {
+                                    'Pagado' => '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>',
+                                    'Condonado' => '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+                                    'Vencido' => '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+                                    'Pendiente' => '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+                                    default => '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
                                 };
 
                                 $iconoEstado = match($textoEstado) {

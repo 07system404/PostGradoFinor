@@ -80,11 +80,17 @@
                     <input type="text" id="celular" name="celular" value="{{ $estudiante->celular ?? '+595 981 123456' }}">
                 </div>
                 <div class="perfil-form-group">
-                    <label for="estado">Estado del Estudiante</label>
-                    <select id="estado" name="activo">
-                        <option value="1" {{ $estudiante->activo ? 'selected' : '' }}>ACTIVO</option>
-                        <option value="0" {{ !$estudiante->activo ? 'selected' : '' }}>INACTIVO</option>
-                    </select>
+                    <label for="estado">Estado General del Estudiante</label>
+                    @php
+                        // CORRECCIÓN 1: Estado general sobre TODAS las inscripciones
+                        $todasRetiradas = $estudiante->inscripciones->every(fn($i) => $i->estado_academico === 'Retirado');
+                        $tieneActiva = $estudiante->inscripciones->contains(fn($i) => $i->estado_academico !== 'Retirado');
+                        $estadoGeneralLabel = $estudiante->inscripciones->isEmpty() ? 'SIN INSCRIPCIÓN' : ($todasRetiradas ? 'RETIRADO' : 'ACTIVO');
+                        $estadoGeneralClase = $todasRetiradas ? 'estado-retirado' : ($tieneActiva ? 'estado-activo' : 'estado-pendiente');
+                    @endphp
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span class="estado-badge {{ $estadoGeneralClase }}">{{ $estadoGeneralLabel }}</span>
+                    </div>
                 </div>
             </div>
 

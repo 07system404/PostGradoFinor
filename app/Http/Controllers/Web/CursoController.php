@@ -7,12 +7,14 @@ use App\Models\Curso;
 use App\Models\Estudiante;
 use App\Models\Inscripcion;
 use App\Traits\GeneraPlanDePagos;
+use App\Traits\ManejaBajaReactivacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CursoController extends Controller
 {
     use GeneraPlanDePagos;
+    use ManejaBajaReactivacion;
 
     /**
      * Listado de Programas Académicos
@@ -190,13 +192,11 @@ class CursoController extends Controller
     }
 
     /**
-     * Quitar (desinscribir) a un estudiante de ESTE programa.
-     * Elimina únicamente la inscripción de este curso y su plan de pagos
-     * asociado (detalles en cascada). NO toca al estudiante ni sus otras
-     * inscripciones. Si ya tiene pagos registrados, se bloquea para no
-     * destruir el historial financiero.
+     * Dar de baja a un estudiante de ESTE programa específico (Contexto 2).
+     * No elimina la inscripción — la marca como Retirado, condona cuotas futuras
+     * y preserva el historial de pagos.
      */
-    public function desinscribirEstudiante($programaId, $inscripcionId)
+    public function bajarDelCurso($programaId, $inscripcionId)
     {
         $inscripcion = Inscripcion::where('id', $inscripcionId)
             ->where('curso_id', $programaId)
@@ -205,20 +205,103 @@ class CursoController extends Controller
 
         $nombre = $inscripcion->estudiante?->nombre_completo ?? 'El estudiante';
 
-        // No permitir desinscribir si existen pagos registrados en esta inscripción.
-        if ($inscripcion->pagos()->count() > 0) {
+        if ($inscripcion->estado_academico === 'Retirado') {
             return redirect()->route('programas.show', $programaId)
-                ->with('error', "No se puede desinscribir a {$nombre}: tiene pagos registrados en este programa.");
+                ->with('info', "{$nombre} ya está retirado de este programa.");
         }
 
-        DB::transaction(function () use ($inscripcion) {
-            // Al eliminar la inscripción, su plan de pagos y los detalles del
-            // cronograma se borran en cascada (FK cascadeOnDelete).
-            $inscripcion->delete();
-        });
+        $this->bajarInscripcion($inscripcion);
+
+        // Verificar si el estudiante debe seguir activo globalmente
+        $estudiante = $inscripcion->estudiante;
+        $todasRetiradas = $estudiante->inscripciones()
+            ->where('estado_academico', '!=', 'Retirado')
+            ->doesntExist();
+        if ($todasRetiradas) {
+            $estudiante->update(['activo' => false]);
+        }
 
         return redirect()->route('programas.show', $programaId)
-            ->with('success', "{$nombre} fue desinscrito de este programa.");
+            ->with('success', "{$nombre} fue retirado de este programa.");
+    }
+
+    /**
+     * Reactivar una inscripción dentro de un curso (Contexto 2).
+     */
+    public function reactivarDelCurso($programaId, $inscripcionId)
+    {
+        $inscripcion = Inscripcion::where('id', $inscripcionId)
+            ->where('curso_id', $programaId)
+            ->with('estudiante')
+            ->firstOrFail();
+
+        if ($inscripcion->estado_academico !== 'Retirado') {
+            return redirect()->route('programas.show', $programaId)
+                ->with('error', 'La inscripción no está en estado "Retirado", no se puede reactivar.');
+        }
+
+        $this->procesarReactivacionInscripcion($inscripcion);
+
+        $estudiante = $inscripcion->estudiante;
+        if (! $estudiante->activo) {
+            $estudiante->update(['activo' => true]);
+        }
+
+        return redirect()->route('programas.show', $programaId)
+            ->with('success', "{$estudiante->nombre_completo} fue reactivado en este programa.");
+    }
+
+    /**
+     * Cambiar tipo de inscripción (Solo Diplomado / Solo Especialidad).
+     */
+    public function cambiarTipoInscripcion(Request $request, $programaId, $inscripcionId)
+    {
+        $validated = $request->validate([
+            'nuevo_tipo' => 'required|in:Diplomado,Especialidad',
+        ]);
+
+        $inscripcion = Inscripcion::where('id', $inscripcionId)
+            ->where('curso_id', $programaId)
+            ->with('estudiante')
+            ->firstOrFail();
+
+        $nuevoTipo = $validated['nuevo_tipo'];
+
+        // Validar que el nuevo tipo sea inferior al actual
+        $orden = ['Diplomado' => 1, 'Especialidad' => 2, 'Maestría' => 3];
+        if (($orden[$nuevoTipo] ?? 0) >= ($orden[$inscripcion->tipo_inscripcion] ?? 0)) {
+            return redirect()->route('programas.show', $programaId)
+                ->with('error', "El tipo '{$nuevoTipo}' no es inferior al tipo actual '{$inscripcion->tipo_inscripcion}'.");
+        }
+
+        $this->limitarTipoInscripcion($inscripcion, $nuevoTipo);
+
+        return redirect()->route('programas.show', $programaId)
+            ->with('success', "Inscripción de {$inscripcion->estudiante->nombre_completo} limitada a '{$nuevoTipo}'.");
+    }
+
+    /**
+     * Continuar a la siguiente fase (Diplomado → Especialidad, Especialidad → Maestría).
+     */
+    public function continuarFase($programaId, $inscripcionId)
+    {
+        $inscripcion = Inscripcion::where('id', $inscripcionId)
+            ->where('curso_id', $programaId)
+            ->with('estudiante')
+            ->firstOrFail();
+
+        $tipoActual = $inscripcion->tipo_inscripcion;
+        $siguiente = $this->siguienteTipo($tipoActual);
+
+        if (! $siguiente) {
+            return redirect()->route('programas.show', $programaId)
+                ->with('error', "La inscripción ya está en el nivel máximo ('{$tipoActual}'), no puede continuar.");
+        }
+
+        $this->aplicarContinuacionFase($inscripcion);
+
+        return redirect()->route('programas.show', $programaId)
+            ->with('success', "{$inscripcion->estudiante->nombre_completo} continúa a '{$siguiente}'.");
     }
 
     /**
@@ -355,44 +438,4 @@ class CursoController extends Controller
         return redirect()->route('programas.index');
     }
 
-    /**
-     * Exportar programas
-     */
-    public function exportar()
-    {
-        $programas = Curso::withCount('inscripciones')->get();
-
-        $filename = 'programas_academicos_' . date('Y-m-d_His') . '.csv';
-        $headers = [
-            'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => "attachment; filename={$filename}",
-        ];
-
-        $callback = function () use ($programas) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
-            fputcsv($file, ['Código', 'Nombre', 'Tipo', 'Versión', 'Edición', 'Periodo', 'Cupo', 'Inscritos', 'Costo Total', 'Estado']);
-
-            foreach ($programas as $prog) {
-                $codigo = strtoupper(substr($prog->tipo, 0, 3)) . '-' . 
-                          strtoupper(str_replace(' ', '-', substr($prog->nombre, 0, 3))) . '-' .
-                          $prog->periodo;
-                fputcsv($file, [
-                    $codigo,
-                    $prog->nombre,
-                    $prog->tipo,
-                    $prog->version,
-                    $prog->edicion,
-                    $prog->periodo,
-                    $prog->cupo,
-                    $prog->inscripciones_count,
-                    $prog->costo_total_estudio,
-                    $prog->activo ? 'Activo' : 'Inactivo',
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
 }

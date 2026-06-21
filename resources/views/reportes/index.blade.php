@@ -68,6 +68,40 @@
         </div>
     </div>
 
+    {{-- Cuentas por Cobrar --}}
+    <div class="reporte-card">
+        <div class="reporte-card-topbar excel"></div>
+        <div class="reporte-card-header excel">
+            <div class="reporte-icon excel">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+            </div>
+            <div>
+                <h3>Cuentas por Cobrar</h3>
+                <p>Resumen financiero por programa: total programado, pagado y saldo pendiente.</p>
+            </div>
+        </div>
+        <div class="reporte-card-body">
+            <div class="reporte-info-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <span>Columnas: <strong>N°</strong>, <strong>Nombre del Curso</strong>, <strong>Total Programado + Matrícula</strong>, <strong>Total Pagado</strong>, <strong>Total por Pagar</strong>. Incluye fila de <strong>TOTALES GENERALES</strong>.</span>
+            </div>
+            <a href="{{ route('reportes.cuentas.cobrar') }}" class="btn-reporte btn-excel" id="btnCuentasCobrar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Exportar Cuentas por Cobrar (.xlsx)
+            </a>
+        </div>
+    </div>
+
     {{-- Pagos por Rango --}}
     <div class="reporte-card">
         <div class="reporte-card-topbar excel"></div>

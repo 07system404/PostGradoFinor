@@ -317,4 +317,9 @@
     color: var(--white);
 }
 
+/* Estado retirado para badge general */
+.estado-retirado {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
 
