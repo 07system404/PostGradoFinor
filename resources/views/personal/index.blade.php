@@ -2,9 +2,12 @@
 
 @section('title', 'Gestión de Personal y Roles - PostGrado Pro')
 
+@push('styles')
+<link rel="stylesheet" href="/css/personal.css">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/personal_index.css') }}">
 
 <!-- Header -->
 <div class="page-header" style="margin-bottom: 24px;">
@@ -217,6 +220,6 @@
     </div>
 </div>
 
-<script src="{{ asset('js/personal_index.js') }}"></script>
+<script src="/js/personal.js"></script>
 
 @endsection

@@ -2,11 +2,14 @@
 
 @section('title', 'Perfil del Alumno')
 
+@push('styles')
+<link rel="stylesheet" href="/css/estudiantes.css">
+<link rel="stylesheet" href="/css/form-cargar-documento.css">
+<link rel="stylesheet" href="/css/form-inscripcion-programa.css">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/estudiantes_show.css') }}">
-<link rel="stylesheet" href="{{ asset('css/form-cargar-documento.css') }}">
-<link rel="stylesheet" href="{{ asset('css/form-inscripcion-programa.css') }}">
 
 <!-- Breadcrumb (contextual según el origen) -->
 <nav class="breadcrumb-perfil">
@@ -231,7 +234,7 @@
                     <td>
                         <div class="doc-acciones">
                             @if($docSubido)
-                            <button class="btn-doc-action btn-ver-doc" data-url="{{ asset('storage/' . $docSubido->ruta_archivo) }}" data-nombre="{{ $docSubido->nombre_archivo }}" title="Ver">
+                            <button class="btn-doc-action btn-ver-doc" data-url="/storage/{{ $docSubido->ruta_archivo }}" data-nombre="{{ $docSubido->nombre_archivo }}" title="Ver">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                     <circle cx="12" cy="12" r="3"/>

@@ -87,3 +87,5 @@
         </form>
     </div>
 </div>
+
+<script src="/js/form-inscripcion-programa.js"></script>

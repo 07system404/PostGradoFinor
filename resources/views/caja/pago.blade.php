@@ -2,9 +2,12 @@
 
 @section('title', 'Registro de Pago - PostGrado Pro')
 
+@push('styles')
+<link rel="stylesheet" href="/css/caja.css?v={{ filemtime(public_path('css/caja.css')) }}">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/caja.css') }}?v={{ filemtime(public_path('css/caja.css')) }}">
 
 <!-- Breadcrumb -->
 <div class="pago-page-header">
@@ -204,6 +207,6 @@
     </div>
 </form>
 
-<script src="{{ asset('js/caja_pago.js') }}?v={{ filemtime(public_path('js/caja_pago.js')) }}"></script>
+<script src="/js/caja.js?v={{ filemtime(public_path('js/caja.js')) }}"></script>
 
 @endsection

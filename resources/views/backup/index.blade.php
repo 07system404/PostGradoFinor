@@ -3,7 +3,7 @@
 @section('title', 'Respaldo del Sistema')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/backup.css') }}">
+<link rel="stylesheet" href="/css/backup.css">
 @endpush
 
 @section('content')
@@ -187,5 +187,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/backup.js') }}"></script>
+<script src="/js/backup.js"></script>
 @endpush

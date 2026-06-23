@@ -46,3 +46,5 @@
         </form>
     </div>
 </div>
+
+<script src="/js/form-cargar-documento.js"></script>

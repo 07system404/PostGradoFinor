@@ -2,9 +2,12 @@
 
 @section('title', 'Nuevo Programa Académico - PostGrado Pro')
 
+@push('styles')
+<link rel="stylesheet" href="/css/cursos.css?v={{ filemtime(public_path('css/cursos.css')) }}">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/cursos_create.css') }}?v={{ filemtime(public_path('css/cursos_create.css')) }}">
 
 <!-- Breadcrumb -->
 <nav class="breadcrumb-perfil" style="margin-bottom: 16px;">
@@ -258,6 +261,6 @@
     </div>
 </form>
 
-<script src="{{ asset('js/cursos_form.js') }}?v={{ filemtime(public_path('js/cursos_form.js')) }}"></script>
+<script src="/js/cursos.js?v={{ filemtime(public_path('js/cursos.js')) }}"></script>
 
 @endsection

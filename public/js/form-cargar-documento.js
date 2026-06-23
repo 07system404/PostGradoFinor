@@ -1,8 +1,7 @@
-/* =========================================
+/* ============================================
    FORM-CARGAR-DOCUMENTO.JS
    Modal "Cargar Documento" + Acciones docs
-   PostGrado Pro
-   ========================================= */
+   ============================================ */
 
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -15,8 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Abrir modal ---
     function abrirModal(alumnoId, alumnoNombre) {
         if (!modal) return;
-        if (form) form.action = '/estudiantes/' + alumnoId + '/documentos';
-        if (titulo) titulo.textContent = 'Cargar Documento \u2014 ' + alumnoNombre;
+        if (form && alumnoId) form.action = '/estudiantes/' + alumnoId + '/documentos';
+        if (titulo) titulo.textContent = 'Cargar Documento \u2014 ' + (alumnoNombre || 'Alumno');
+        modal.style.display = 'flex';
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
@@ -24,36 +24,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Cerrar modal ---
     function cerrarModal() {
         if (!modal) return;
+        modal.style.display = 'none';
         modal.classList.remove('active');
         document.body.style.overflow = '';
         if (form) form.reset();
         if (dropzone) {
             dropzone.classList.remove('active', 'cd-has-error');
             var tp = dropzone.querySelector('p.cd-dropzone-text');
-            if (tp) tp.textContent = 'Arrastra el archivo aqu\u00ed';
+            if (tp) tp.textContent = 'Arrastra el archivo aqui';
         }
-        var errs = dropzone ? dropzone.querySelectorAll('.error') : [];
-        errs.forEach(function(e) { e.remove(); });
-        var selects = document.querySelectorAll('.cd-form-group select.error-input');
-        selects.forEach(function(s) { s.classList.remove('error-input'); });
     }
 
-    // --- Boton "Cargar Documento" (show) y "Subir" (index) ---
+    // --- Boton "Cargar Documento" (show) ---
     var btnCargar = document.getElementById('btn-cargar-documento');
     if (btnCargar) {
         btnCargar.addEventListener('click', function(e) {
             e.preventDefault();
-            var id = this.dataset.alumnoId;
-            var nombre = this.dataset.alumnoNombre;
-            if (id) abrirModal(id, nombre || 'Alumno');
+            var id = this.getAttribute('data-alumno-id');
+            var nombre = this.getAttribute('data-alumno-nombre') || 'Alumno';
+            abrirModal(id, nombre);
         });
     }
-    var btnsSubir = document.querySelectorAll('.btn-subir-doc');
-    btnsSubir.forEach(function(btn) {
+
+    // --- Botones "Subir" en tabla (index) ---
+    document.querySelectorAll('.btn-subir-doc').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            var id = this.dataset.alumnoId;
-            var nombre = this.dataset.alumnoNombre;
+            var id = this.getAttribute('data-alumno-id');
+            var nombre = this.getAttribute('data-alumno-nombre');
             if (id) abrirModal(id, nombre || 'Alumno');
         });
     });
@@ -80,195 +78,123 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Drag & Drop ---
     if (dropzone && fileInput) {
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(evt) {
-            dropzone.addEventListener(evt, function(ev) { ev.preventDefault(); ev.stopPropagation(); });
-        });
-        ['dragenter', 'dragover'].forEach(function(evt) {
-            dropzone.addEventListener(evt, function() { dropzone.classList.add('active'); });
-        });
-        ['dragleave', 'drop'].forEach(function(evt) {
-            dropzone.addEventListener(evt, function() { dropzone.classList.remove('active'); });
-        });
-
-        dropzone.addEventListener('drop', function(e) {
-            fileInput.files = e.dataTransfer.files;
-            manejarArchivo({ target: { files: e.dataTransfer.files } });
-        });
-
         dropzone.addEventListener('click', function() { fileInput.click(); });
-        fileInput.addEventListener('change', function(e) { manejarArchivo(e); });
-
-        function manejarArchivo(e) {
-            var files = e.target.files;
-            if (files.length > 0) {
-                var file = files[0];
-                var validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-                if (!validTypes.includes(file.type)) {
-                    alert('Solo se permiten archivos JPG, PNG o PDF');
-                    fileInput.value = '';
-                    return;
-                }
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('El archivo no puede ser mayor a 5MB');
-                    fileInput.value = '';
-                    return;
-                }
+        dropzone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('active'); });
+        dropzone.addEventListener('dragleave', function() { this.classList.remove('active'); });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault(); this.classList.remove('active');
+            fileInput.files = e.dataTransfer.files;
+            var tp = dropzone.querySelector('p.cd-dropzone-text');
+            if (tp && e.dataTransfer.files.length) tp.textContent = 'Archivo: ' + e.dataTransfer.files[0].name;
+        });
+        fileInput.addEventListener('change', function() {
+            if (this.files.length) {
                 var tp = dropzone.querySelector('p.cd-dropzone-text');
-                if (tp) tp.textContent = 'Archivo: ' + file.name;
-                dropzone.classList.remove('cd-has-error');
-                var err = dropzone.querySelector('.error');
-                if (err) err.remove();
+                if (tp) tp.textContent = 'Archivo: ' + this.files[0].name;
             }
-        }
+        });
     }
 
     // --- Validacion pre-submit ---
     if (form) {
         form.addEventListener('submit', function(e) {
-            var valido = true;
-            var tipoSelect = document.getElementById('cd-tipo');
-            if (!tipoSelect || !tipoSelect.value) {
-                valido = false;
-                if (tipoSelect) tipoSelect.classList.add('error-input');
-            } else {
-                if (tipoSelect) tipoSelect.classList.remove('error-input');
-            }
-            if (!fileInput || !fileInput.files.length) {
-                valido = false;
-                if (dropzone) {
-                    dropzone.classList.add('cd-has-error');
-                    if (!dropzone.querySelector('.error')) {
-                        var err = document.createElement('p');
-                        err.className = 'error';
-                        err.textContent = 'Debe seleccionar un archivo';
-                        dropzone.appendChild(err);
-                    }
-                }
-            } else {
-                if (dropzone) {
-                    dropzone.classList.remove('cd-has-error');
-                    var err = dropzone.querySelector('.error');
-                    if (err) err.remove();
-                }
-            }
-            if (!valido) {
-                e.preventDefault();
-                return;
-            }
-            var btnSubmit = form.querySelector('button[type="submit"]');
-            if (btnSubmit) {
-                btnSubmit.disabled = true;
-                btnSubmit.textContent = 'Cargando...';
-            }
+            var tipo = document.getElementById('cd-tipo');
+            if (!tipo || !tipo.value) { e.preventDefault(); tipo.classList.add('error-input'); return; }
+            if (!fileInput || !fileInput.files.length) { e.preventDefault(); dropzone.classList.add('cd-has-error'); return; }
+            var btn = form.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.textContent = 'Cargando...'; }
         });
     }
 
-    // === ACCIONES DE DOCUMENTOS: Ver / Descargar / Eliminar ===
+    // ===========================
+    // VER DOCUMENTO (PREVIEW)
+    // ===========================
+    var previewModal = document.getElementById('cd-preview-modal');
+    var previewBody = document.getElementById('cd-preview-body');
+    var previewTitulo = document.getElementById('cd-preview-titulo');
 
-    // --- Ver documento (preview en modal) ---
+    function cerrarPreview() {
+        if (previewModal) { previewModal.style.display = 'none'; }
+        if (previewBody) { previewBody.innerHTML = ''; }
+        document.body.style.overflow = '';
+    }
+
     document.querySelectorAll('.btn-ver-doc').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            var url = this.dataset.url;
-            var nombre = this.dataset.nombre || 'Documento';
+            var url = this.getAttribute('data-url');
+            var nombre = this.getAttribute('data-nombre') || 'Documento';
             if (!url) { alert('Documento no disponible'); return; }
-            abrirPreviewModal(url, nombre);
+
+            if (previewTitulo) previewTitulo.textContent = nombre;
+            var ext = url.split('.').pop().toLowerCase();
+            var isImage = ['jpg','jpeg','png','gif','webp','svg'].indexOf(ext) !== -1;
+            var isPdf = ext === 'pdf';
+
+            if (isImage) {
+                previewBody.innerHTML = '<img src="' + url + '" alt="' + nombre + '" style="max-width:100%;max-height:70vh;border-radius:8px;">';
+            } else if (isPdf) {
+                previewBody.innerHTML = '<embed src="' + url + '" type="application/pdf" style="width:100%;height:70vh;border:none;border-radius:8px;">';
+            } else {
+                previewBody.innerHTML = '<div style="padding:40px;text-align:center;"><p style="font-size:16px;color:var(--gray-600);margin-bottom:20px;">Vista previa no disponible para este tipo de archivo.</p><a href="' + url + '" download="' + nombre + '" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--primary);color:#fff;border-radius:8px;text-decoration:none;font-weight:600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar archivo</a></div>';
+            }
+            previewModal.style.display = 'flex';
+            previewModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
         });
     });
 
-    // --- Descargar documento ---
+    var btnCerrarPreview = document.getElementById('cd-cerrar-preview');
+    if (btnCerrarPreview) btnCerrarPreview.addEventListener('click', cerrarPreview);
+    if (previewModal) {
+        previewModal.addEventListener('click', function(e) {
+            if (e.target === previewModal) cerrarPreview();
+        });
+    }
+
+    // --- Cerrar preview con Escape ---
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && previewModal && previewModal.style.display !== 'none') {
+            cerrarPreview();
+        }
+    });
+
+    // ===========================
+    // DESCARGAR DOCUMENTO
+    // ===========================
     document.querySelectorAll('.btn-descargar-doc').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            var url = this.dataset.url;
+            var url = this.getAttribute('data-url');
             if (!url) { alert('Documento no disponible'); return; }
             window.location.href = url;
         });
     });
 
-    // --- Eliminar documento ---
+    // ===========================
+    // ELIMINAR DOCUMENTO
+    // ===========================
     document.querySelectorAll('.btn-eliminar-doc').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            var docId = this.dataset.docId;
-            var docNombre = this.dataset.docNombre || 'este documento';
+            var docId = this.getAttribute('data-doc-id');
+            var docNombre = this.getAttribute('data-doc-nombre') || 'este documento';
             if (!docId) return;
-            if (!confirm('\u00bfEst\u00e1 seguro de eliminar "' + docNombre + '"? Esta acci\u00f3n no se puede deshacer.')) return;
+            if (!confirm('\u00bfEliminar "' + docNombre + '"? Esta accion no se puede deshacer.')) return;
 
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/documentos/' + docId;
-            form.style.display = 'none';
-
-            var csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = '_token';
-            csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            form.appendChild(csrfInput);
-
-            var methodInput = document.createElement('input');
-            methodInput.type = 'hidden';
-            methodInput.name = '_method';
-            methodInput.value = 'DELETE';
-            form.appendChild(methodInput);
-
-            document.body.appendChild(form);
-            form.submit();
+            var f = document.createElement('form');
+            f.method = 'POST'; f.action = '/documentos/' + docId;
+            f.style.display = 'none';
+            var t1 = document.createElement('input');
+            t1.type = 'hidden'; t1.name = '_token';
+            t1.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            f.appendChild(t1);
+            var t2 = document.createElement('input');
+            t2.type = 'hidden'; t2.name = '_method'; t2.value = 'DELETE';
+            f.appendChild(t2);
+            document.body.appendChild(f);
+            f.submit();
         });
     });
-
-    // --- Modal de preview ---
-    function abrirPreviewModal(url, nombre) {
-        var existing = document.getElementById('cd-preview-modal');
-        if (existing) existing.remove();
-
-        var isImage = /\.(jpg|jpeg|png)$/i.test(url);
-        var content = '';
-        if (isImage) {
-            content = '<img src="' + url + '" alt="' + nombre + '" style="max-width:100%;max-height:70vh;border-radius:8px;display:block;margin:0 auto;">';
-        } else {
-            content = '<iframe src="' + url + '" style="width:100%;height:70vh;border:none;border-radius:8px;"></iframe>';
-        }
-
-        var overlay = document.createElement('div');
-        overlay.id = 'cd-preview-modal';
-        overlay.className = 'cd-modal-overlay active';
-        overlay.innerHTML =
-            '<div class="cd-modal-box" style="max-width:800px;">' +
-                '<div class="cd-modal-header">' +
-                    '<h3 class="cd-modal-title">' + nombre + '</h3>' +
-                    '<button type="button" class="cd-modal-close" onclick="this.closest(\'.cd-modal-overlay\').remove();document.body.style.overflow=\'\';">' +
-                        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                            '<line x1="18" y1="6" x2="6" y2="18"/>' +
-                            '<line x1="6" y1="6" x2="18" y2="18"/>' +
-                        '</svg>' +
-                    '</button>' +
-                '</div>' +
-                '<div class="cd-modal-body" style="padding:16px;">' +
-                    content +
-                '</div>' +
-            '</div>';
-
-        document.body.appendChild(overlay);
-        document.body.style.overflow = 'hidden';
-
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {
-                overlay.remove();
-                document.body.style.overflow = '';
-            }
-        });
-
-        document.addEventListener('keydown', function handler(e) {
-            if (e.key === 'Escape') {
-                var m = document.getElementById('cd-preview-modal');
-                if (m) {
-                    m.remove();
-                    document.body.style.overflow = '';
-                }
-                document.removeEventListener('keydown', handler);
-            }
-        });
-    }
 
 });

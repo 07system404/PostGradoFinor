@@ -469,6 +469,25 @@
     color: var(--danger);
 }
 
+.btn-exportar-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #fee2e2;
+    color: #dc2626;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-exportar-pdf:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
 /* Tabla de cronograma */
 .cronograma-table {
     width: 100%;

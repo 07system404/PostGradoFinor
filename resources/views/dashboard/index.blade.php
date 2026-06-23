@@ -2,9 +2,12 @@
 
 @section('title', 'Dashboard')
 
+@push('styles')
+<link rel="stylesheet" href="/css/dashboard.css?v={{ filemtime(public_path('css/dashboard.css')) }}">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v={{ filemtime(public_path('css/dashboard.css')) }}">
 
 {{-- ════════════ SECCIÓN 1: TARJETAS DE MÉTRICAS ════════════ --}}
 <div class="dash-metricas">
@@ -151,6 +154,6 @@
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="{{ asset('js/dashboard.js') }}?v={{ filemtime(public_path('js/dashboard.js')) }}"></script>
+<script src="/js/dashboard.js?v={{ filemtime(public_path('js/dashboard.js')) }}"></script>
 
 @endsection

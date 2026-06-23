@@ -278,4 +278,31 @@ class CajaController extends Controller
 
         return view('caja.recibo', compact('detalle', 'inscripcion', 'estudiante', 'pagos'));
     }
+
+    /**
+     * Generar PDF del cronograma de pagos de un estudiante.
+     */
+    public function cronogramaPdf(Estudiante $estudiante, Inscripcion $inscripcion)
+    {
+        $estudiante->load([]);
+        $inscripcion->load(['curso', 'planPago.detalles']);
+
+        $planPago = $inscripcion->planPago;
+        $detalles = $planPago ? $planPago->detalles()->orderBy('nro_cuota')->get() : collect();
+
+        $hoy = now();
+        $pagados = $detalles->whereIn('estado', ['Pagado', 'Parcial'])->count();
+        $vencidos = $detalles->filter(function ($d) use ($hoy) {
+            return ($d->estado === 'Vencido') ||
+                   ($d->estado === 'Pendiente' && $d->fecha_vencimiento && $d->fecha_vencimiento->lt($hoy));
+        })->count();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('caja.cronograma-pdf', compact(
+            'estudiante', 'inscripcion', 'planPago', 'detalles', 'pagados', 'vencidos'
+        ));
+
+        $nombreArchivo = 'cronograma_' . preg_replace('/\s+/', '_', $estudiante->nombre_completo) . '_' . $hoy->format('Y-m-d') . '.pdf';
+
+        return $pdf->download($nombreArchivo);
+    }
 }

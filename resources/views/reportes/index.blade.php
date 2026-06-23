@@ -2,9 +2,12 @@
 
 @section('title', 'Reportes y Planillas')
 
+@push('styles')
+<link rel="stylesheet" href="/css/reportes.css?v={{ filemtime(public_path('css/reportes.css')) }}">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/reportes.css') }}?v={{ filemtime(public_path('css/reportes.css')) }}">
 
 @if(session('error'))
 <div class="alert alert-error">

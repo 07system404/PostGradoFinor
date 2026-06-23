@@ -98,5 +98,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('caja/pago', [PagoController::class, 'store'])->name('caja.pago.store');
     Route::get('caja/pago/formulario/{detalle?}', [CajaController::class, 'formularioPago'])->name('caja.pago.formulario');
     Route::get('caja/recibo/{detalle}', [CajaController::class, 'recibo'])->name('caja.pago.recibo');
+    Route::get('caja/{estudiante}/cronograma-pdf/{inscripcion}', [CajaController::class, 'cronogramaPdf'])->name('caja.cronograma.pdf');
 
 }); 

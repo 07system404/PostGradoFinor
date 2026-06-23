@@ -6,11 +6,13 @@
 (function () {
     'use strict';
 
-    if (typeof Chart === 'undefined' || !window.dashboardData) {
+    if (typeof Chart === 'undefined') {
         return;
     }
 
-    const data = window.dashboardData;
+    if (!window.dashboardData) return;
+
+    var data = window.dashboardData;
 
     // Estilos base compartidos
     Chart.defaults.font.family =

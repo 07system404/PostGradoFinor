@@ -2,9 +2,12 @@
 
 @section('title', 'Registrar Nuevo Estudiante')
 
+@push('styles')
+<link rel="stylesheet" href="/css/estudiantes.css">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/estudiantes_create.css') }}">
 
 <!-- Top bar: breadcrumb + action buttons -->
 <div class="form-top-bar">
@@ -180,6 +183,6 @@
     </div>
 </form>
 
-<script src="{{ asset('js/inscripciones.js') }}"></script>
+<script src="/js/estudiantes.js"></script>
 
 @endsection

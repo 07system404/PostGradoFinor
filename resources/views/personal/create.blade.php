@@ -2,9 +2,12 @@
 
 @section('title', 'Registrar Nuevo Usuario')
 
+@push('styles')
+<link rel="stylesheet" href="/css/personal.css">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/personal_create.css') }}">
 <div class="personal-create">
     <h2>Registrar Nuevo Usuario</h2>
     <p class="subtitle">Complete el formulario para dar acceso al sistema.</p>
@@ -56,6 +59,6 @@
         </div>
     </form>
 </div>
-<script src="{{ asset('js/personal_form.js') }}"></script>
+<script src="/js/personal.js"></script>
 
 @endsection

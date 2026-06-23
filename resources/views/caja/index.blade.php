@@ -2,10 +2,13 @@
 
 @section('title', 'Caja y Facturación')
 
+@push('styles')
+<link rel="stylesheet" href="/css/caja.css?v={{ filemtime(public_path('css/caja.css')) }}">
+<link rel="stylesheet" href="/css/form-inscripcion-programa.css?v={{ filemtime(public_path('css/form-inscripcion-programa.css')) }}">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/caja.css') }}?v={{ filemtime(public_path('css/caja.css')) }}">
-<link rel="stylesheet" href="{{ asset('css/form-inscripcion-programa.css') }}?v={{ filemtime(public_path('css/form-inscripcion-programa.css')) }}">
 
 <!-- Mensajes -->
 @if(session('success'))
@@ -206,6 +209,17 @@
                             <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--danger); display: inline-block;"></span>
                             {{ $vencidos }} Vencido{{ $vencidos != 1 ? 's' : '' }}
                         </span>
+                        <a href="{{ route('caja.cronograma.pdf', [$estudianteSeleccionado->id, $inscripcionSeleccionada->id]) }}" 
+                           class="btn-exportar-pdf" target="_blank" title="Exportar PDF">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10 9 9 9 8 9"/>
+                            </svg>
+                            PDF
+                        </a>
                     </div>
                 </div>
 
@@ -315,7 +329,7 @@
     </div>
 </div>
 
-<script src="{{ asset('js/caja_index.js') }}?v={{ filemtime(public_path('js/caja_index.js')) }}"></script>
-<script src="{{ asset('js/form-inscripcion-programa.js') }}"></script>
+<script src="/js/caja.js?v={{ filemtime(public_path('js/caja.js')) }}"></script>
+<script src="/js/form-inscripcion-programa.js"></script>
 
 @endsection

@@ -2,41 +2,14 @@
 
 @section('title', 'Estudiantes del Programa - PostGrado Pro')
 
+@push('styles')
+<link rel="stylesheet" href="/css/cursos.css?v={{ filemtime(public_path('css/cursos.css')) }}">
+<link rel="stylesheet" href="/css/form-inscripcion-programa.css?v={{ filemtime(public_path('css/form-inscripcion-programa.css')) }}">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/cursos_show.css') }}?v={{ filemtime(public_path('css/cursos_show.css')) }}">
-<link rel="stylesheet" href="{{ asset('css/form-inscripcion-programa.css') }}?v={{ filemtime(public_path('css/form-inscripcion-programa.css')) }}">
 
-<style>
-    .curso-show-table-header-right {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-    }
-    .btn-inscribir-estudiante {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 9px 16px;
-        border: none;
-        border-radius: 8px;
-        background: #1B4FD8;
-        color: #fff;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: inherit;
-        transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
-        box-shadow: 0 4px 12px rgba(27, 79, 216, 0.25);
-    }
-    .btn-inscribir-estudiante:hover {
-        background: #1239A8;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(27, 79, 216, 0.35);
-    }
-    .btn-inscribir-estudiante:active { transform: translateY(0); }
-    .btn-inscribir-estudiante svg { width: 15px; height: 15px; }
-</style>
 
 <!-- Breadcrumb -->
 <nav class="breadcrumb-perfil" style="margin-bottom: 16px;">
@@ -365,7 +338,7 @@
     </div>
 </div>
 
-<script src="{{ asset('js/form-inscripcion-programa.js') }}?v={{ filemtime(public_path('js/form-inscripcion-programa.js')) }}"></script>
+<script src="/js/form-inscripcion-programa.js?v={{ filemtime(public_path('js/form-inscripcion-programa.js')) }}"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

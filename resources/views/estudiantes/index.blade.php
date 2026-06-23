@@ -2,10 +2,13 @@
 
 @section('title', 'Gestion de Alumnos')
 
+@push('styles')
+<link rel="stylesheet" href="/css/estudiantes.css">
+<link rel="stylesheet" href="/css/form-cargar-documento.css">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/estudiantes_index.css') }}">
-<link rel="stylesheet" href="{{ asset('css/form-cargar-documento.css') }}">
 
 <!-- Mensajes -->
 @if(session('success'))

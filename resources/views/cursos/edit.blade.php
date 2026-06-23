@@ -2,9 +2,12 @@
 
 @section('title', 'Editar Programa - PostGrado Pro')
 
+@push('styles')
+<link rel="stylesheet" href="/css/cursos.css?v={{ filemtime(public_path('css/cursos.css')) }}">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/cursos_edit.css') }}?v={{ filemtime(public_path('css/cursos_edit.css')) }}">
 
 <!-- Breadcrumb -->
 <nav class="breadcrumb-perfil" style="margin-bottom: 16px;">
@@ -270,6 +273,6 @@
 
 </form>
 
-<script src="{{ asset('js/cursos_form.js') }}?v={{ filemtime(public_path('js/cursos_form.js')) }}"></script>
+<script src="/js/cursos.js?v={{ filemtime(public_path('js/cursos.js')) }}"></script>
 
 @endsection

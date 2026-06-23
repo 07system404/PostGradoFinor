@@ -2,9 +2,12 @@
 
 @section('title', 'Programas Académicos')
 
+@push('styles')
+<link rel="stylesheet" href="/css/cursos.css">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/cursos_index.css') }}">
 
 <!-- Mensajes -->
 @if(session('success'))
@@ -198,6 +201,6 @@
 </div>
 </div>
 
-<script src="{{ asset('js/cursos_index.js') }}"></script>
+<script src="/js/cursos.js"></script>
 
 @endsection

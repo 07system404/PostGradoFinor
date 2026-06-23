@@ -194,3 +194,5 @@
     transform: none;
     box-shadow: none;
 }
+
+@keyframes spin { to { transform: rotate(360deg); } }

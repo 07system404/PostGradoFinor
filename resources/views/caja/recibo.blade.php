@@ -2,9 +2,12 @@
 
 @section('title', 'Recibo de Pago - PostGrado Pro')
 
+@push('styles')
+<link rel="stylesheet" href="/css/caja.css?v={{ filemtime(public_path('css/caja.css')) }}">
+@endpush
+
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/caja.css') }}?v={{ filemtime(public_path('css/caja.css')) }}">
 
 @php
     $totalPagado = $pagos->sum('monto');
@@ -66,7 +69,7 @@
 @forelse($pagos as $pago)
     @php
         $ext = $pago->archivo_adjunto ? strtolower(pathinfo($pago->archivo_adjunto, PATHINFO_EXTENSION)) : null;
-        $url = $pago->archivo_adjunto ? asset('storage/' . $pago->archivo_adjunto) : null;
+        $url = $pago->archivo_adjunto ? '/storage/' . $pago->archivo_adjunto : null;
         $esImagen = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
         $esPdf = $ext === 'pdf';
     @endphp
